@@ -1,0 +1,45 @@
+name: CI
+on: 
+  push:
+    paths-ignore:
+      # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions
+      - "docs/**"
+      - '**.md'
+      - '**.txt'
+      - '!CMakeLists.txt'
+      - 'LICENSE'
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - '**.md'
+      - '**.txt'
+      - '!CMakeLists.txt'
+      - 'LICENSE'
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        wincurl_target: [wincurl-win64, wincurl-win32, wincurl-arm64]
+        include:
+          - wincurl_target: wincurl-win64
+            msvc_arch: amd64
+            build_dir: build
+          - wincurl_target: wincurl-win32
+            msvc_arch: amd64_x86
+            build_dir: build.win32
+          - wincurl_target: wincurl-arm64
+            msvc_arch: amd64_arm64
+            build_dir: build.arm64
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: compile-wincurl
+        shell: cmd
+        env:
+          wincurl_target: ${{ matrix.wincurl_target }}
+          workdir: ${{ matrix.build_dir }}
+        run: ./build.ps1
