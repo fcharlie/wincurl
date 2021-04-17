@@ -1,4 +1,4 @@
-####
+#!/usr/bin/env pwsh
 
 $ZLIB_VERSION = "1.2.11"
 $ZLIB_HASH = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff"
@@ -40,7 +40,7 @@ $CURL_URL = "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz"
 $CURL_FILE = "curl-${CURL_VERSION}"
 
 #curl-ca-bundle
-$CA_BUNDLE_URL = "https://curl.haxx.se/ca/cacert-2020-10-14.pem"
+$CA_BUNDLE_URL = "https://curl.haxx.se/ca/cacert-2021-04-13.pem"
 
 Function DumpLocal {
     $dumptext = $ZLIB_VERSION + $ZLIB_HASH + $ZLIB_FILENAME + $ZLIB_URL 

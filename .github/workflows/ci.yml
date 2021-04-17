@@ -41,5 +41,7 @@ jobs:
         shell: cmd
         env:
           wincurl_target: ${{ matrix.wincurl_target }}
+          msvc_arch: ${{ matrix.msvc_arch }}
+          ref_name: ${{ github.ref }}
           workdir: ${{ matrix.build_dir }}
         run: ./build.bat
