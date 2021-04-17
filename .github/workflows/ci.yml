@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        wincurl_target: [wincurl-win64, wincurl-win32, wincurl-arm64]
+        wincurl_target: [wincurl-win64, wincurl-win32]
         include:
           - wincurl_target: wincurl-win64
             msvc_arch: amd64
