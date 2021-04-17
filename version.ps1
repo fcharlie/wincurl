@@ -15,6 +15,9 @@ $LIBSSH2_HASH = "d5fb8bd563305fd1074dda90bd053fb2d29fc4bce048d182f96eaa466dfadaf
 $NGHTTP2_VERSION = "1.43.0"
 $NGHTTP2_HASH = "f4a9be08d22f5ad9b4bf36c491f1be58e54dc35a1592eaf4e3f79567e4894d0c"
 
+$ZSTD_VERSION = "1.4.9"
+$ZSTD_HASH = "29ac74e19ea28659017361976240c4b5c5c24db3b89338731a6feb97c038d293"
+
 # We use tar.gz because Windows tar not support tar.xz
 $CURL_VERSION = "7.76.1"
 $CURL_HASH = "5f85c4d891ccb14d6c3c701da3010c91c6570c3419391d485d95235253d837d7"
@@ -36,6 +39,9 @@ $NGHTTP2_FILE = "nghttp2-${NGHTTP2_VERSION}"
 $LIBSSH2_URL = "https://www.libssh2.org/download/libssh2-${LIBSSH2_VERSION}.tar.gz"
 $LIBSSH2_FILE = "libssh2-${LIBSSH2_VERSION}"
 
+$ZSTD_URL = "https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz"
+$ZSTD_FILE = "zstd-${ZSTD_VERSION}"
+
 $CURL_URL = "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz"
 $CURL_FILE = "curl-${CURL_VERSION}"
 
@@ -48,7 +54,7 @@ Function DumpLocal {
     + $BROTLI_HASH + $BROTLI_URL + $BROTLI_FILE 
     + $NGHTTP2_HASH + $NGHTTP2_URL + $NGHTTP2_FILE 
     + $LIBSSH2_HASH + $LIBSSH2_URL + $LIBSSH2_FILE
-    + $CURL_HASH + $CURL_FILE + $CURL_URL + $CA_BUNDLE_URL
+    + $CURL_HASH + $CURL_FILE + $CURL_URL + $CA_BUNDLE_URL + $ZSTD_URL + $ZSTD_FILE + $ZSTD_HASH
     Write-Host $dumptext
 }
 
@@ -57,4 +63,5 @@ openssl: $OPENSSL_VERSION $OPENSSL_HASH
 brotli: $BROTLI_VERSION
 libssh2: $LIBSSH2_VERSION
 nghttp2: $NGHTTP2_VERSION
+zstd: $ZSTD_VERSION
 curl: $CURL_VERSION"
