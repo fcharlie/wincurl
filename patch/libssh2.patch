@@ -1,0 +1,27 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ae55942..1dc9971 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -51,6 +51,22 @@ endif()
+ 
+ option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+ 
++if(NOT BUILD_SHARED_LIBS)
++  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
++  set(CompilerFlags
++		CMAKE_CXX_FLAGS
++		CMAKE_CXX_FLAGS_DEBUG
++		CMAKE_CXX_FLAGS_RELEASE
++		CMAKE_C_FLAGS
++		CMAKE_C_FLAGS_DEBUG
++		CMAKE_C_FLAGS_RELEASE
++	)
++	foreach(CompilerFlag ${CompilerFlags})
++		string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
++	endforeach()
++endif()
++
++
+ # Parse version
+ 
+ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/libssh2.h _HEADER_CONTENTS)

@@ -68,3 +68,30 @@ Function WinGet {
     }
     return $true
 }
+
+
+Function StripPrefix {
+    param(
+        [parameter(Position = 0)]
+        [String]$Text,
+        [parameter(Position = 1)]
+        [String]$Prefix
+    )
+    if ($Text.StartsWith($Prefix)) {
+        return $Text.Substring($Prefix.Length)
+    }
+    return $Text
+}
+
+Function StripSuffix {
+    param(
+        [parameter(Position = 0)]
+        [String]$Text,
+        [parameter(Position = 1)]
+        [String]$Suffix
+    )
+    if ($Text.EndsWith($Suffix)) {
+        return $Text.Substring(0, $Text.Length - $Suffix.Length)
+    }
+    return $Text
+}
