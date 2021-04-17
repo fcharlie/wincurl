@@ -264,14 +264,8 @@ $env:LIB = "$Prefix\lib;$env:LIB"
 
 # perl Configure no-shared no-ssl3 enable-capieng -utf-8
 
-$opensslflags = "Configure no-shared no-unit-test no-tests no-ssl3 enable-capieng -utf-8 " + `
+$opensslflags = "Configure no-shared no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8 " + `
     "VC-WIN64A `"--prefix=$Prefix`" `"--openssldir=$Prefix`""
-
-$Nasmexe = Findcommand -Name "nasm"
-if ($null -eq $Nasmexe) {
-    Write-Host -ForegroundColor Yellow "Not found nasm, build openssl no-asm"
-    $opensslflags += " no-asm"
-}
 
 $openssldir = Join-Path $WD $OPENSSL_FILE
 
