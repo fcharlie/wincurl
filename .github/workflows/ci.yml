@@ -42,4 +42,4 @@ jobs:
         env:
           wincurl_target: ${{ matrix.wincurl_target }}
           workdir: ${{ matrix.build_dir }}
-        run: ./build.ps1
+        run: ./build.bat
