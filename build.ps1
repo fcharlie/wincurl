@@ -52,6 +52,7 @@ Function DecompressTar {
     Write-Host "Get-FileHash  $File"
     $xhash = Get-FileHash -Algorithm SHA256 $File
     if ($xhash.Hash -ne $Hash) {
+        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
         Remove-Item -Force $File
         if (!(WinGet -URL $URL -O $File)) {
             return $false
@@ -59,6 +60,7 @@ Function DecompressTar {
     }
     $xhash = Get-FileHash -Algorithm SHA256 $File
     if ($xhash.Hash -ne $Hash) {
+        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
         return $false
     }
 
