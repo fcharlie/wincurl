@@ -437,8 +437,9 @@ if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) 
 }
 
 $zstdflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_STATIC=ON " + `
-    "-DZSTD_BUILD_PROGRAMS=OFF" + `
-    " -DZSTD_BUILD_SHARED=OFF `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
+    "-DZSTD_BUILD_PROGRAMS=OFF " + `
+    "-DZSTD_BUILD_SHARED=OFF " + `
+    "-DZSTD_USE_STATIC_RUNTIME=ON `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
 
 $ZSTDDIR = Join-Path $WD "$ZSTD_FILE/build/cmake"
 $ZSTDBUILD = Join-Path $ZSTDDIR "build"
@@ -545,4 +546,10 @@ if (!$RefName.StartsWith("refs/heads/")) {
     $VersionName = $RefName
 }
 
-Compress-Archive -Path "$CURLOUT\*" -DestinationPath "$CURLDEST\$WINCURL_TARGET-$VersionName.zip"
+$DestinationPath = "$CURLDEST\$WINCURL_TARGET-$VersionName.zip"
+Compress-Archive -Path "$CURLOUT\*" -DestinationPath $DestinationPath
+$obj = Get-FileHash -Algorithm SHA256 $DestinationPath
+$baseName = Split-Path -Leaf $DestinationPath
+$hashtext = $obj.Algorithm + ":" + $obj.Hash.ToLower()
+$hashtext | Out-File -Encoding utf8 -FilePath "$DestinationPath.sha256"
+Write-Host "$baseName`n$hashtext"
