@@ -452,13 +452,13 @@ if ($ec -ne 0) {
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $LIBSSH2BUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZSTDBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zstd: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $LIBSSH2BUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZSTDBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zstd: install error"
     exit 1
