@@ -38,38 +38,6 @@ Function Findcommand4GitDevs {
     return $cmdx
 }
 
-Function DecompressTar {
-    param(
-        [String]$URL,
-        [String]$File,
-        [String]$Hash
-    )
-    if (!(Test-Path $File)) {
-        if (!(WinGet -URL $URL -O $File)) {
-            return $false
-        }
-    }
-    Write-Host "Get-FileHash  $File"
-    $xhash = Get-FileHash -Algorithm SHA256 $File
-    if ($xhash.Hash -ne $Hash) {
-        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
-        Remove-Item -Force $File
-        if (!(WinGet -URL $URL -O $File)) {
-            return $false
-        }
-    }
-    $xhash = Get-FileHash -Algorithm SHA256 $File
-    if ($xhash.Hash -ne $Hash) {
-        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
-        return $false
-    }
-
-    if ((Exec -FilePath $tarexe -Argv "$decompress $File") -ne 0) {
-        Write-Host -ForegroundColor Red "Decompress $File failed"
-        return $false
-    }
-    return $true
-}
 
 Function Invoke-BatchFile {
     param(
@@ -127,14 +95,14 @@ Write-Host "Find cl.exe: $($clexe.Version)"
 $curlexe = Findcommand -Name "curl"
 if ($null -eq $curlexe) {
     Write-Host -ForegroundColor Red "Please use the latest Windows release."
-    return 1
+    exit 1
 }
 Write-Host -ForegroundColor Green "curl: $curlexe"
 
 $cmakeexe = Findcommand -Name "cmake"
 if ($null -eq $cmakeexe) {
     Write-Host -ForegroundColor Red "Please install cmake."
-    return 1
+    exit 1
 }
 Write-Host -ForegroundColor Green "cmake: $cmakeexe"
 
@@ -149,7 +117,7 @@ Write-Host -ForegroundColor Green "Use $tarexe as tar"
 $Ninjaexe = Findcommand -Name "ninja"
 if ($null -eq $Ninjaexe) {
     Write-Host -ForegroundColor Red "Please install ninja."
-    return 1
+    exit 1
 }
 Write-Host -ForegroundColor Green "ninja: $Ninjaexe"
 
@@ -159,7 +127,7 @@ if ($null -eq $Patchexe) {
     $Patchexe = Findcommand -Name "patch"
     if ($null -eq $Patchexe) {
         Write-Host -ForegroundColor Red "Please install patch."
-        return 1
+        exit 1
     }
 }
 
@@ -170,15 +138,49 @@ $Perlexe = Findcommand -Name "perl"
 if ($null -eq $Perlexe) {
     Write-Host -ForegroundColor Red "Please install perl (strawberryperl, activeperl).
     perl implementation must produce Windows like paths (with backward slash directory separators). "
-    return 1
+    exit 1
 }
 Write-Host  -ForegroundColor Green "perl: $Perlexe"
 
+
+Function DecompressTar {
+    param(
+        [String]$URL,
+        [String]$File,
+        [String]$Hash
+    )
+    if (!(Test-Path $File)) {
+        if (!(WinGet -URL $URL -O $File)) {
+            return $false
+        }
+    }
+    Write-Host "Get-FileHash  $File"
+    $xhash = Get-FileHash -Algorithm SHA256 $File
+    if ($xhash.Hash -ne $Hash) {
+        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
+        Remove-Item -Force $File
+        if (!(WinGet -URL $URL -O $File)) {
+            return $false
+        }
+    }
+    $xhash = Get-FileHash -Algorithm SHA256 $File
+    if ($xhash.Hash -ne $Hash) {
+        Write-Host "download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
+        return $false
+    }
+
+    if ((Exec -FilePath $tarexe -Argv "$decompress $File") -ne 0) {
+        Write-Host -ForegroundColor Red "Decompress $File failed"
+        return $false
+    }
+    return $true
+}
+
 $RefName = StripPrefix "$env:REF_NAME" "refs/tags/" # remove prefix
 
-Write-Host "build wincurl $RefName"
+Write-Host "build wincurl $RefName <$PSScriptRoot>"
 $WD = "build"
-if ([String]::IsNullOrEmpty($env:BUILD_DIR)) {
+if (![String]::IsNullOrEmpty($env:BUILD_DIR)) {
     $WD = $env:BUILD_DIR
 }
 $WD = Join-Path $PSScriptRoot $WD
@@ -191,16 +193,23 @@ Write-Host "build work directory $WD"
 
 . "$PSScriptRoot/version.ps1"
 
+$WINCURL_TARGET = "$env:WINCURL_TARGET"
 Write-Host -ForegroundColor Green "compile curl $CURL_VERSION for $env:WINCURL_TARGET"
 
 $Prefix = Join-Path $WD "cleanroot"
 $CURLOUT = Join-Path $WD "out"
+$CURLDEST = Join-Path $PSScriptRoot "dest"
 
 Write-Host "we will deploy curl to: $CURLPrefix"
 
 if (!(MkdirAll -Dir $Prefix)) {
     exit 1
 }
+
+if (!(MkdirAll -Dir $CURLDEST)) {
+    exit 1
+}
+
 
 ################################################## Zlib
 if (!(DecompressTar -URL $ZLIB_URL -File "$ZLIB_FILENAME.tar.gz" -Hash $ZLIB_HASH)) {
@@ -233,19 +242,19 @@ $cmakeflags = "-GNinja " + `
 $ec = Exec -FilePath $cmakeexe -Argv $cmakeflags -WD $ZLIBBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: create build.ninja error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZLIBBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZLIBBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: install error"
-    return 1
+    exit 1
 }
 
 Move-Item -Path "$Prefix/lib/zlibstatic.lib"   "$Prefix/lib/zlib.lib"  -Force -ErrorAction SilentlyContinue
@@ -272,19 +281,19 @@ $openssldir = Join-Path $WD $OPENSSL_FILE
 $ec = Exec -FilePath $Perlexe -Argv $opensslflags -WD $openssldir
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: config error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath nmake -Argv "-f makefile build_libs" -WD $openssldir
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath nmake -Argv "-f makefile install_dev" -WD $openssldir
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: install_dev error"
-    return 1
+    exit 1
 }
 # build brotli static
 ######################################################### Brotli
@@ -314,19 +323,19 @@ $brotliflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
 $ec = Exec -FilePath $cmakeexe -Argv $brotliflags -WD $BBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "brotli: create build.ninja error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $BBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "brotli: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $BBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "brotli: install error"
-    return 1
+    exit 1
 }
 
 ## Fix curl not exists
@@ -359,19 +368,19 @@ $ngflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_
 $ec = Exec -FilePath $cmakeexe -Argv $ngflags -WD $NGBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: create build.ninja error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $NGBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $NGBUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: install error"
-    return 1
+    exit 1
 }
 
 if (Test-Path "$Prefix/lib/nghttp2_static.lib") {
@@ -405,20 +414,57 @@ $libssh2flags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + 
 $ec = Exec -FilePath $cmakeexe -Argv $libssh2flags -WD $LIBSSH2BUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: create build.ninja error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $LIBSSH2BUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $LIBSSH2BUILD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: install error"
-    return 1
+    exit 1
 }
+
+
+############################################################# zstd
+Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
+if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
+    exit 1
+}
+
+$zstdflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_STATIC=ON " + `
+    "-DZSTD_BUILD_PROGRAMS=OFF" + `
+    " -DZSTD_BUILD_SHARED=OFF `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
+
+$ZSTDDIR = Join-Path $WD "$ZSTD_FILE/build/cmake"
+$ZSTDBUILD = Join-Path $ZSTDDIR "build"
+if (!(MkdirAll -Dir $ZSTDBUILD)) {
+    exit 1
+}
+
+$ec = Exec -FilePath $cmakeexe -Argv $zstdflags -WD $ZSTDBUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: create build.ninja error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $LIBSSH2BUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: build error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $LIBSSH2BUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: install error"
+    exit 1
+}
+
+Move-Item -Path "$Prefix/lib/zstd_static.lib"   "$Prefix/lib/zstd.lib"  -Force -ErrorAction SilentlyContinue
 
 ############################################################## CURL
 
@@ -469,19 +515,19 @@ $curlflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
 $ec = Exec -FilePath $cmakeexe -Argv $curlflags -WD $CURLBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: create build.ninja error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $CURLBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: build error"
-    return 1
+    exit 1
 }
 
 $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $CURLBD
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: install error"
-    return 1
+    exit 1
 }
 
 # download curl-ca-bundle.crt
@@ -493,3 +539,10 @@ if (!(WinGet -URL $CA_BUNDLE_URL -O $CA_BUNDLE)) {
 }
 
 Write-Host -ForegroundColor Green "curl: build completed"
+
+$VersionName = $CURL_VERSION
+if (!$RefName.StartsWith("refs/heads/")) {
+    $VersionName = $RefName
+}
+
+Compress-Archive -Path "$CURLOUT\*" -DestinationPath "$CURLDEST\$WINCURL_TARGET-$VersionName.zip"
