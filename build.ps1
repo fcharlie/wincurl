@@ -338,7 +338,6 @@ if ($ec -ne 0) {
     exit 1
 }
 
-## Fix curl not exists
 Move-Item -Path "$Prefix/lib/brotlicommon-static.lib"   "$Prefix/lib/brotlicommon.lib"  -Force -ErrorAction SilentlyContinue
 Move-Item -Path "$Prefix/lib/brotlidec-static.lib"   "$Prefix/lib/brotlidec.lib"  -Force -ErrorAction SilentlyContinue
 Move-Item -Path "$Prefix/lib/brotlienc-static.lib"   "$Prefix/lib/brotlienc.lib"  -Force -ErrorAction SilentlyContinue
@@ -508,6 +507,7 @@ $curlflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
     "-DCMAKE_USE_OPENSSL=ON " + `
     "-DCMAKE_USE_SCHANNEL=ON " + `
     "-DCMAKE_USE_LIBSSH2=ON " + `
+    "-DCURL_ZSTD=ON " + `
     "-DCURL_BROTLI=ON " + `
     "-DCMAKE_RC_FLAGS=-c1252 " + `
     "`"-DBROTLI_DIR=$Prefix`" " + `
