@@ -80,7 +80,7 @@ if ($vsvars.Length -eq 0) {
     Write-Host "Not found visual studio installed."
     exit 1
 }
-$vsArch = $env:MSVC_ARCH
+$vsArch = "$env:MSVC_ARCH"
 Write-Host "We try run '$vsvars $vsArch' and initialize environment."
 
 Invoke-BatchFile -Path $vsvars -ArgumentList "$vsArch" 
@@ -271,10 +271,18 @@ if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSS
 $env:INCLUDE = "$Prefix\include;$env:INCLUDE"
 $env:LIB = "$Prefix\lib;$env:LIB"
 
+$OPENSSL_ARCH = "VC-WIN64A"
+if ($vsArch -eq "amd64_x86") {
+    $OPENSSL_ARCH = "VC-WIN32"
+}
+elseif ($vsArch -eq "amd64_arm64") {
+    $OPENSSL_ARCH = "VC-WIN64-ARM"
+}
+
 # perl Configure no-shared no-ssl3 enable-capieng -utf-8
 
 $opensslflags = "Configure no-shared no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8 " + `
-    "VC-WIN64A `"--prefix=$Prefix`" `"--openssldir=$Prefix`""
+    "$OPENSSL_ARCH `"--prefix=$Prefix`" `"--openssldir=$Prefix`""
 
 $openssldir = Join-Path $WD $OPENSSL_FILE
 

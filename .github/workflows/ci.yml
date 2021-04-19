@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        wincurl_target: [wincurl-win64, wincurl-win32]
+        wincurl_target: [wincurl-win64, wincurl-win32, wincurl-arm64]
         include:
           - wincurl_target: wincurl-win64
             msvc_arch: amd64
@@ -30,6 +30,9 @@ jobs:
           - wincurl_target: wincurl-win32
             msvc_arch: amd64_x86
             build_dir: build.win32
+          - wincurl_target: wincurl-arm64
+            msvc_arch: amd64_arm64
+            build_dir: build.arm64
     steps:
       - uses: actions/checkout@v2
         with:
