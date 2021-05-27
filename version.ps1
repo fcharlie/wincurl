@@ -19,8 +19,8 @@ $ZSTD_VERSION = "1.5.0"
 $ZSTD_HASH = "5194fbfa781fcf45b98c5e849651aa7b3b0a008c6b72d4a0db760f3002291e94"
 
 # We use tar.gz because Windows tar not support tar.xz
-$CURL_VERSION = "7.76.1"
-$CURL_HASH = "5f85c4d891ccb14d6c3c701da3010c91c6570c3419391d485d95235253d837d7"
+$CURL_VERSION = "7.77.0"
+$CURL_HASH = "b0a3428acb60fa59044c4d0baae4e4fc09ae9af1d8a3aa84b2e3fbcd99841f77"
 
 # Filename
 $ZLIB_FILENAME = "zlib-${ZLIB_VERSION}"
