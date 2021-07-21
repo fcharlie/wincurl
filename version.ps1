@@ -12,20 +12,20 @@ $BROTLI_HASH = "f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46
 $LIBSSH2_VERSION = "1.9.0"
 $LIBSSH2_HASH = "d5fb8bd563305fd1074dda90bd053fb2d29fc4bce048d182f96eaa466dfadafd"
 
+# nghttp2-${NGHTTP2_VERSION}.tar.xz
 $NGHTTP2_VERSION = "1.44.0"
-$NGHTTP2_HASH = "99b90dec8fd2e855bfc69526a8c5f251e788d256a0c9d156c2d0e3279bdd5eed"
+$NGHTTP2_HASH = "5699473b29941e8dafed10de5c8cb37a3581edf62ba7d04b911ca247d4de3c5d"
 
 $ZSTD_VERSION = "1.5.0"
 $ZSTD_HASH = "5194fbfa781fcf45b98c5e849651aa7b3b0a008c6b72d4a0db760f3002291e94"
 
-# We use tar.gz because Windows tar not support tar.xz
-$CURL_VERSION = "7.77.0"
-$CURL_HASH = "b0a3428acb60fa59044c4d0baae4e4fc09ae9af1d8a3aa84b2e3fbcd99841f77"
+# curl-${CURL_VERSION}.tar.xz
+$CURL_VERSION = "7.78.0" 
+$CURL_HASH = "be42766d5664a739c3974ee3dfbbcbe978a4ccb1fe628bb1d9b59ac79e445fb5"
 
 # Filename
 $ZLIB_FILENAME = "zlib-${ZLIB_VERSION}"
 $ZLIB_URL = "https://github.com/madler/zlib/archive/v${ZLIB_VERSION}.tar.gz"
-#$ZLIB_URL = "https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz"
 
 $OPENSSL_URL = "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
 $OPENSSL_FILE = "openssl-${OPENSSL_VERSION}"
@@ -33,7 +33,7 @@ $OPENSSL_FILE = "openssl-${OPENSSL_VERSION}"
 $BROTLI_URL = "https://github.com/google/brotli/archive/v${BROTLI_VERSION}.tar.gz"
 $BROTLI_FILE = "brotli-${BROTLI_VERSION}"
 
-$NGHTTP2_URL = "https://github.com/nghttp2/nghttp2/archive/v${NGHTTP2_VERSION}.tar.gz"
+$NGHTTP2_URL = "https://github.com/nghttp2/nghttp2/releases/download/v${NGHTTP2_VERSION}/nghttp2-${NGHTTP2_VERSION}.tar.xz"
 $NGHTTP2_FILE = "nghttp2-${NGHTTP2_VERSION}"
 
 $LIBSSH2_URL = "https://www.libssh2.org/download/libssh2-${LIBSSH2_VERSION}.tar.gz"
@@ -42,7 +42,7 @@ $LIBSSH2_FILE = "libssh2-${LIBSSH2_VERSION}"
 $ZSTD_URL = "https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz"
 $ZSTD_FILE = "zstd-${ZSTD_VERSION}"
 
-$CURL_URL = "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz"
+$CURL_URL = "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.xz"
 $CURL_FILE = "curl-${CURL_VERSION}"
 
 #curl-ca-bundle

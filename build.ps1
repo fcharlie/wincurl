@@ -60,12 +60,12 @@ Function Invoke-BatchFile {
 }
 
 $vsinstalls = @(
-    "C:\Program Files (x86)\Microsoft Visual Studio\2021\Enterprise"
-    "C:\Program Files (x86)\Microsoft Visual Studio\2021\Community"
-    "C:\Program Files (x86)\Microsoft Visual Studio\2021\BuildTools"
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community"
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
+    "$env:ProgramFiles\Microsoft Visual Studio\2022\Enterprise"
+    "$env:ProgramFiles\Microsoft Visual Studio\2022\Community"
+    "$env:ProgramFiles\Microsoft Visual Studio\2022\BuildTools"
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise"
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Community"
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools"
 )
 $vsvars = ""
 
@@ -105,14 +105,6 @@ if ($null -eq $cmakeexe) {
     exit 1
 }
 Write-Host -ForegroundColor Green "cmake: $cmakeexe"
-
-$tarexe = Findcommand -Name "tar"
-$decompress = "-xvf"
-if ($null -eq $tarexe) {
-    $tarexe = $cmakeexe
-    $decompress = "-E tar -xvf"
-}
-Write-Host -ForegroundColor Green "Use $tarexe as tar"
 
 $Ninjaexe = Findcommand -Name "ninja"
 if ($null -eq $Ninjaexe) {
@@ -169,7 +161,7 @@ Function DecompressTar {
         return $false
     }
 
-    if ((Exec -FilePath $tarexe -Argv "$decompress $File") -ne 0) {
+    if ((Exec -FilePath $cmakeexe -Argv "-E tar -xvf $File") -ne 0) {
         Write-Host -ForegroundColor Red "Decompress $File failed"
         return $false
     }
