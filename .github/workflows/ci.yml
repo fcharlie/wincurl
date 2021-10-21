@@ -47,10 +47,8 @@ jobs:
         run: ./build.bat
       - name: check_artifact_hash
         shell: pwsh
-        env:
-          build_dir: ${{ matrix.build_dir }}
         run: |
-          Set-Location "$env:build_dir/dest"
+          Set-Location dest
           $item=Get-Item *.zip
           $obj=Get-FileHash -Algorithm SHA256 $item.FullName
           $baseName=Split-Path -Leaf $item.FullName
