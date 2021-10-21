@@ -50,7 +50,7 @@ jobs:
         env:
           build_dir: ${{ matrix.build_dir }}
         run: |
-          Set-Location "${{ matrix.build_dir }}/dest"
+          Set-Location "$env:build_dir/dest"
           $item=Get-Item *.zip
           $obj=Get-FileHash -Algorithm SHA256 $item.FullName
           $baseName=Split-Path -Leaf $item.FullName
