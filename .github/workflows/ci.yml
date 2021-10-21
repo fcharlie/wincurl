@@ -45,6 +45,18 @@ jobs:
           ref_name: ${{ github.ref }}
           build_dir: ${{ matrix.build_dir }}
         run: ./build.bat
+      - name: check_artifact_hash
+        shell: pwsh
+        env:
+          build_dir: ${{ matrix.build_dir }}
+        run: |
+          Set-Location "${{ matrix.build_dir }}/dest"
+          $item=Get-Item *.zip
+          $obj=Get-FileHash -Algorithm SHA256 $item.FullName
+          $baseName=Split-Path -Leaf $item.FullName
+          $env:WINCURL_ASSET_NAME="$baseName"
+          $hashtext=$obj.Algorithm+":"+$obj.Hash.ToLower()
+          Write-Host "$env:WINCURL_ASSET_NAME`n$hashtext"
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.wincurl_target }}
