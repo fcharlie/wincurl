@@ -504,9 +504,9 @@ $curlflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
     "-DUSE_NGHTTP2=ON -DBUILD_TESTING=OFF " + `
     "-DBUILD_CURL_EXE=ON " + `
     "-DCURL_STATIC_CRT=ON " + `
-    "-DCMAKE_USE_OPENSSL=ON " + `
-    "-DCMAKE_USE_SCHANNEL=ON " + `
-    "-DCMAKE_USE_LIBSSH2=ON " + `
+    "-DCURL_USE_OPENSSL=ON " + `
+    "-DCURL_USE_SCHANNEL=ON " + `
+    "-DCURL_USE_LIBSSH2=ON " + `
     "-DCURL_ZSTD=ON " + `
     "-DCURL_BROTLI=ON " + `
     "-DCMAKE_RC_FLAGS=-c1252 " + `
