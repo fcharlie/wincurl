@@ -1,27 +1,55 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ae55942..1dc9971 100644
+index e6c95c8..1db4187 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -51,6 +51,22 @@ endif()
+@@ -33,7 +33,7 @@
+ # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ # OF SUCH DAMAGE.
+ 
+-cmake_minimum_required(VERSION 2.8.11)
++cmake_minimum_required(VERSION 3.20)
+ 
+ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+ 
+@@ -41,13 +41,16 @@ project(libssh2 C)
+ set(PROJECT_URL "https://www.libssh2.org/")
+ set(PROJECT_DESCRIPTION "The SSH library")
+ 
+-if (CMAKE_VERSION VERSION_LESS "3.1")
+-  if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+-    set (CMAKE_C_FLAGS "--std=gnu90 ${CMAKE_C_FLAGS}")
+-  endif()
+-else()
+-  set (CMAKE_C_STANDARD 90)
+-endif()
++if(MSVC)
++  set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")
++  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS=1 -utf-8 -W3 -DUNICODE=1 -D_UNICODE=1 -wd26812")
++  set(CMAKE_CXX_FLAGS
++      "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS=1 -utf-8 -W3 -permissive- -Zc:__cplusplus -DUNICODE=1 -D_UNICODE=1 -wd26812"
++  )
++  set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -c65001")
++endif(MSVC)
++
++set(CMAKE_C_STANDARD 17)
  
  option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
  
-+if(NOT BUILD_SHARED_LIBS)
-+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-+  set(CompilerFlags
-+		CMAKE_CXX_FLAGS
-+		CMAKE_CXX_FLAGS_DEBUG
-+		CMAKE_CXX_FLAGS_RELEASE
-+		CMAKE_C_FLAGS
-+		CMAKE_C_FLAGS_DEBUG
-+		CMAKE_C_FLAGS_RELEASE
-+	)
-+	foreach(CompilerFlag ${CompilerFlags})
-+		string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-+	endforeach()
-+endif()
-+
-+
- # Parse version
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index eee1a80..b60634c 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -365,12 +365,7 @@ if(MSVC)
+   set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DEBUG")
+ endif()
  
- file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/libssh2.h _HEADER_CONTENTS)
+-if(CMAKE_VERSION VERSION_LESS "2.8.12")
+-  # Fall back to over-linking dependencies
+-  target_link_libraries(libssh2 ${LIBRARIES})
+-else()
+-  target_link_libraries(libssh2 PRIVATE ${LIBRARIES})
+-endif()
++target_link_libraries(libssh2 PRIVATE ${LIBRARIES})
+ 
+ ## Installation
+ 

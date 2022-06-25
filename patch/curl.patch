@@ -1,8 +1,44 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3a20028..0107487 100644
+index 45d763d5a..6604aa74e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -651,17 +651,25 @@ if(ZLIB_FOUND)
+@@ -508,23 +508,23 @@ if(USE_NGHTTP2)
+   list(APPEND CURL_LIBS ${NGHTTP2_LIBRARIES})
+ endif()
+ 
+-function(CheckQuicSupportInOpenSSL)
+-  # Be sure that the OpenSSL library actually supports QUIC.
+-  cmake_push_check_state()
+-  set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
+-  set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
+-  check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
+-  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    message(FATAL_ERROR "QUIC support is missing in OpenSSL/boringssl. Try setting -DOPENSSL_ROOT_DIR")
+-  endif()
+-  cmake_pop_check_state()
+-endfunction()
++# function(CheckQuicSupportInOpenSSL)
++#   # Be sure that the OpenSSL library actually supports QUIC.
++#   cmake_push_check_state()
++#   set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
++#   set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
++#   check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++#   if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
++#     message(FATAL_ERROR "QUIC support is missing in OpenSSL/boringssl. Try setting -DOPENSSL_ROOT_DIR")
++#   endif()
++#   cmake_pop_check_state()
++# endfunction()
+ 
+ option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
+ if(USE_NGTCP2)
+   if(USE_OPENSSL)
+     find_package(NGTCP2 REQUIRED OpenSSL)
+-    CheckQuicSupportInOpenSSL()
++    #CheckQuicSupportInOpenSSL()
+   elseif(USE_GNUTLS)
+     # TODO add GnuTLS support as vtls library.
+     find_package(NGTCP2 REQUIRED GnuTLS)
+@@ -717,17 +717,21 @@ if(ZLIB_FOUND)
    list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
  endif()
  
@@ -28,48 +64,18 @@ index 3a20028..0107487 100644
 +#     list(APPEND CMAKE_REQUIRED_INCLUDES ${BROTLI_INCLUDE_DIRS})
 +#   endif()
 +# endif()
++
 +# Force enable brotli
-+set(BROTLI_LIBRARIES
-+    brotlicommon
-+    brotlidec
-+    brotlienc
-+)
 +set(HAVE_BROTLI ON)
-+list(APPEND CURL_LIBS ${BROTLI_LIBRARIES})
++list(APPEND CURL_LIBS brotli)
  
  option(CURL_ZSTD "Set to ON to enable building curl with zstd support." OFF)
  set(HAVE_ZSTD OFF)
-@@ -1326,6 +1334,25 @@ if(USE_MANUAL)
-   add_subdirectory(docs)
- endif()
- 
-+if(NOT BUILD_SHARED_LIBS)
-+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
-+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
-+  add_definitions(-DNGHTTP2_STATICLIB)
-+  set(CompilerFlags
-+    CMAKE_CXX_FLAGS
-+    CMAKE_CXX_FLAGS_DEBUG
-+    CMAKE_CXX_FLAGS_RELEASE
-+    CMAKE_C_FLAGS
-+    CMAKE_C_FLAGS_DEBUG
-+    CMAKE_C_FLAGS_RELEASE
-+  )
-+  foreach(CompilerFlag ${CompilerFlags})
-+    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-+  endforeach()
-+endif()
-+
-+
- add_subdirectory(lib)
- 
- if(BUILD_CURL_EXE)
 diff --git a/src/curl.rc b/src/curl.rc
-index 7d88b32..6e9296e 100644
+index b0e328798..500ba5bd7 100644
 --- a/src/curl.rc
 +++ b/src/curl.rc
-@@ -24,6 +24,8 @@
+@@ -26,6 +26,8 @@
  
  LANGUAGE  0, 0
  

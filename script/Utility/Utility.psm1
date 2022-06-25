@@ -26,7 +26,7 @@ Function Exec {
     return $Process.ExitCode
 }
 
-Function Findcommand {
+Function FindCommand {
     param(
         [String]$Name
     )

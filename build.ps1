@@ -1,5 +1,17 @@
 #!/usr/bin/env pwsh
 
+param(
+    [ValidateSet("win64", "arm64")]
+    [string]$Target = "win64"
+)
+
+$targetLists = @{
+    "win64" = "amd64";
+    "arm64" = "amd64_arm64";
+}
+
+$MsvcTarget = $targetLists[$Target]
+
 # TLS enable tls12/tls13
 [enum]::GetValues('Net.SecurityProtocolType') | Where-Object { $_ -ge 'Tls12' } | ForEach-Object {
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor $_
@@ -7,11 +19,11 @@
 
 Import-Module -Name "$PSScriptRoot/script/Utility"
 
-Function Findcommand4GitDevs {
+Function FindCommand4GitDevs {
     param(
-        [String]$Command
+        [String]$Cmd
     )
-    $gitexex = Findcommand -Name "git"
+    $gitexex = FindCommand -Name "git"
     if ($null -eq $gitexex) {
         Write-Host -ForegroundColor Red "Please install git-for-windows."
         return $null
@@ -21,7 +33,7 @@ Function Findcommand4GitDevs {
         Write-Host -ForegroundColor Red "Please install git-for-windows."
         return $null
     }
-    $cmdx = Join-Path $gitinstall "usr/bin/${Command}.exe"
+    $cmdx = Join-Path $gitinstall "usr/bin/${Cmd}.exe"
     Write-Host "Try to find patch from $cmdx"
     if (!(Test-Path $cmdx)) {
         $xinstall = Split-Path -Parent $gitinstall
@@ -29,7 +41,7 @@ Function Findcommand4GitDevs {
             Write-Host -ForegroundColor Red "Please install git-for-windows."
             return $null
         }
-        $cmdx = Join-Path  $xinstall "usr/bin/${Command}.exe"
+        $cmdx = Join-Path  $xinstall "usr/bin/${Cmd}.exe"
         if (!(Test-Path $cmdx)) {
             Write-Host -ForegroundColor Red "Please install git-for-windows."
             return $null
@@ -60,18 +72,15 @@ Function Invoke-BatchFile {
 }
 
 $vsinstalls = @(
-    "$env:ProgramFiles\Microsoft Visual Studio\2022\Enterprise"
-    "$env:ProgramFiles\Microsoft Visual Studio\2022\Community"
-    "$env:ProgramFiles\Microsoft Visual Studio\2022\BuildTools"
-    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise"
-    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Community"
-    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools"
+    "$env:ProgramFiles/Microsoft Visual Studio/2022/Enterprise"
+    "$env:ProgramFiles/Microsoft Visual Studio/2022/Community"
+    "$env:ProgramFiles/Microsoft Visual Studio/2022/BuildTools"
 )
 $vsvars = ""
 
 foreach ($vi in $vsinstalls) {
-    if (Test-Path "$vi\VC\Auxiliary\Build\vcvarsall.bat") {
-        $vsvars = "$vi\VC\Auxiliary\Build\vcvarsall.bat"
+    if (Test-Path "$vi/VC/Auxiliary/Build/vcvarsall.bat") {
+        $vsvars = "$vi/VC/Auxiliary/Build/vcvarsall.bat"
         break;
     }
 }
@@ -80,10 +89,10 @@ if ($vsvars.Length -eq 0) {
     Write-Host "Not found visual studio installed."
     exit 1
 }
-$vsArch = "$env:MSVC_ARCH"
-Write-Host "We try run '$vsvars $vsArch' and initialize environment."
 
-Invoke-BatchFile -Path $vsvars -ArgumentList "$vsArch" 
+Write-Host "We try run '$vsvars $MsvcTarget' and initialize environment."
+
+Invoke-BatchFile -Path $vsvars -ArgumentList "$MsvcTarget" 
 
 $clexe = Get-Command -CommandType Application "cl" -ErrorAction SilentlyContinue
 if ($null -eq $clexe) {
@@ -92,21 +101,21 @@ if ($null -eq $clexe) {
 }
 Write-Host "Find cl.exe: $($clexe.Version)"
 
-$curlexe = Findcommand -Name "curl"
+$curlexe = FindCommand -Name "curl"
 if ($null -eq $curlexe) {
     Write-Host -ForegroundColor Red "Please use the latest Windows release."
     exit 1
 }
 Write-Host -ForegroundColor Green "curl: $curlexe"
 
-$cmakeexe = Findcommand -Name "cmake"
+$cmakeexe = FindCommand -Name "cmake"
 if ($null -eq $cmakeexe) {
     Write-Host -ForegroundColor Red "Please install cmake."
     exit 1
 }
 Write-Host -ForegroundColor Green "cmake: $cmakeexe"
 
-$Ninjaexe = Findcommand -Name "ninja"
+$Ninjaexe = FindCommand -Name "ninja"
 if ($null -eq $Ninjaexe) {
     Write-Host -ForegroundColor Red "Please install ninja."
     exit 1
@@ -114,9 +123,9 @@ if ($null -eq $Ninjaexe) {
 Write-Host -ForegroundColor Green "ninja: $Ninjaexe"
 
 
-$Patchexe = Findcommand4GitDevs -Command "patch"
+$Patchexe = FindCommand4GitDevs -Cmd "patch"
 if ($null -eq $Patchexe) {
-    $Patchexe = Findcommand -Name "patch"
+    $Patchexe = FindCommand -Name "patch"
     if ($null -eq $Patchexe) {
         Write-Host -ForegroundColor Red "Please install patch."
         exit 1
@@ -125,7 +134,7 @@ if ($null -eq $Patchexe) {
 
 Write-Host  -ForegroundColor Green "path: $Patchexe"
 
-$Perlexe = Findcommand -Name "perl"
+$Perlexe = FindCommand -Name "perl"
 
 if ($null -eq $Perlexe) {
     Write-Host -ForegroundColor Red "Please install perl (strawberryperl, activeperl).
@@ -168,7 +177,13 @@ Function DecompressTar {
     return $true
 }
 
+
 $RefName = StripPrefix "$env:REF_NAME" "refs/tags/" # remove prefix
+
+if ($RefName.Length -eq 0) {
+    $RefName = "dev"
+}
+
 
 Write-Host "build wincurl $RefName <$PSScriptRoot>"
 $WD = "build"
@@ -179,89 +194,156 @@ $WD = Join-Path $PSScriptRoot $WD
 if (!(MkdirAll -Dir $WD)) {
     exit 1
 }
+
 Set-Location $WD
 
 Write-Host "build work directory $WD"
 
 . "$PSScriptRoot/version.ps1"
 
-$WINCURL_TARGET = "$env:WINCURL_TARGET"
-Write-Host -ForegroundColor Green "compile curl $CURL_VERSION for $env:WINCURL_TARGET"
+Write-Host -ForegroundColor Green "compile curl $CURL_VERSION for $Target"
 
-$Prefix = Join-Path $WD "cleanroot"
-$CURLOUT = Join-Path $WD "out"
-$CURLDEST = Join-Path $PSScriptRoot "dest"
+$MID_INSTALL_DIR = (Join-Path $WD "cleanroot").Replace("\", "/")
+$CURL_BUILD_OUT = Join-Path $WD "out"
+$CURL_DESTINATION = Join-Path $PSScriptRoot "destination"
 
 Write-Host "we will deploy curl to: $CURLPrefix"
 
-if (!(MkdirAll -Dir $Prefix)) {
+if (!(MkdirAll -Dir $MID_INSTALL_DIR)) {
     exit 1
 }
 
-if (!(MkdirAll -Dir $CURLDEST)) {
+if (!(MkdirAll -Dir $CURL_DESTINATION)) {
     exit 1
 }
 
+$env:INCLUDE = "$env:INCLUDE;$MID_INSTALL_DIR/include"
+$env:LIB = "$env:LIB;$MID_INSTALL_DIR/lib"
+
+############################################################# zstd
+Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
+if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
+    exit 1
+}
+
+$ZSTD_SOURCE_DIR = Join-Path $WD $ZSTD_FILE
+Write-Host -ForegroundColor Yellow "Apply zstd CMakeLists.txt ..."
+$ZSTD_CMAKE = Join-Path $PSScriptRoot "cmake/zstd/CMakeLists.txt"
+Copy-Item $ZSTD_CMAKE -Destination $ZSTD_SOURCE_DIR -Force
+
+$zstd_options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .."
+
+$ZSTD_BUILD = Join-Path $ZSTD_SOURCE_DIR "out"
+if (!(MkdirAll -Dir $ZSTD_BUILD)) {
+    exit 1
+}
+
+$ec = Exec -FilePath $cmakeexe -Argv $zstd_options -WD $ZSTD_BUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: create build.ninja error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZSTD_BUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: build error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZSTD_BUILD
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "zstd: install error"
+    exit 1
+}
+
+# build brotli static
+######################################################### Brotli
+Write-Host -ForegroundColor Yellow "Build brotli $BROTLI_VERSION"
+if (!(DecompressTar -URL $BROTLI_URL -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
+    exit 1
+}
+
+$BROTLI_SOURCE_DIR = Join-Path $WD $BROTLI_FILE
+
+Write-Host -ForegroundColor Yellow "Apply brotli CMakeLists.txt ..."
+$BROTLI_CMAKE = Join-Path $PSScriptRoot "cmake/brotli/CMakeLists.txt"
+Copy-Item $BROTLI_CMAKE -Destination $BROTLI_SOURCE_DIR -Force
+
+
+$BROTLI_BUILD_DIR = Join-Path $BROTLI_SOURCE_DIR "out"
+if (!(MkdirAll -Dir $BROTLI_BUILD_DIR)) {
+    exit 1
+}
+
+$brotli_options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .."
+
+
+$ec = Exec -FilePath $cmakeexe -Argv $brotli_options -WD $BROTLI_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "brotli: create build.ninja error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $BROTLI_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "brotli: build error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $BROTLI_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "brotli: install error"
+    exit 1
+}
 
 ################################################## Zlib
 if (!(DecompressTar -URL $ZLIB_URL -File "$ZLIB_FILENAME.tar.gz" -Hash $ZLIB_HASH)) {
     exit 1
 }
 
-$ZLIBDIR = Join-Path $PWD $ZLIB_FILENAME
-$ZLIBBD = Join-Path $ZLIBDIR "build"
+$ZLIB_SOURCE_DIR = Join-Path $PWD $ZLIB_FILENAME
+$ZLIB_BUILD_DIR = Join-Path $ZLIB_SOURCE_DIR "out"
 
-Write-Host -ForegroundColor Yellow "Apply zlib.patch ..."
-$ZLIB_PACTH = Join-Path $PSScriptRoot "patch/zlib.patch"
+Write-Host -ForegroundColor Yellow "Apply zlib CMakeLists.txt ..."
+$ZLIB_CMAKE = Join-Path $PSScriptRoot "cmake/zlib/CMakeLists.txt"
+Copy-Item $ZLIB_CMAKE -Destination $ZLIB_SOURCE_DIR -Force
 
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$ZLIB_PACTH`"" -WD $ZLIBDIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $ZLIB_PACTH failed"
-}
-
-if (!(MkdirAll -Dir $ZLIBBD)) {
+if (!(MkdirAll -Dir $ZLIB_BUILD_DIR)) {
     exit 1
 }
 
-$cmakeflags = "-GNinja " + `
-    "-DCMAKE_BUILD_TYPE=Release " + `
-    "`"-DCMAKE_INSTALL_PREFIX=$Prefix`" " + `
-    "-DSKIP_INSTALL_FILES=ON " + `
-    "-DSKIP_BUILD_EXAMPLES=ON " + `
-    "-DBUILD_SHARED_LIBS=OFF `"$ZLIBDIR`""
+$zlib_options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .."
 
-
-$ec = Exec -FilePath $cmakeexe -Argv $cmakeflags -WD $ZLIBBD
+$ec = Exec -FilePath $cmakeexe -Argv $zlib_options -WD $ZLIB_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: create build.ninja error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZLIBBD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZLIB_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZLIBBD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZLIB_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "zlib: install error"
     exit 1
 }
 
-Move-Item -Path "$Prefix/lib/zlibstatic.lib"   "$Prefix/lib/zlib.lib"  -Force -ErrorAction SilentlyContinue
-#Copy-Item -Path "$ZLIBDIR/LICENSE" 
+##################################################### OpenSSL(quic)
+Write-Host -ForegroundColor Yellow "Build OpenSSL(QUIC) $OPENSSL_QUIC_VERSION"
 
-##################################################### OpenSSL
-Write-Host -ForegroundColor Yellow "Build OpenSSL $OPENSSL_VERSION"
-
-if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL $OPENSSL_QUIC_URL -File "$OPENSSL_QUIC_FILE.tar.gz" -Hash $OPENSSL_QUIC_HASH)) {
     exit 1
 }
 
+$OPENSSL_SOURCE_DIR = Join-Path $WD $OPENSSL_QUIC_DIR
+
 # Update env
-$env:INCLUDE = "$Prefix\include;$env:INCLUDE"
-$env:LIB = "$Prefix\lib;$env:LIB"
+$env:INCLUDE = "$MID_INSTALL_DIR/include;$env:INCLUDE"
+$env:LIB = "$MID_INSTALL_DIR/lib;$env:LIB"
 
 $OPENSSL_ARCH = "VC-WIN64A"
 if ($vsArch -eq "amd64_x86") {
@@ -273,198 +355,191 @@ elseif ($vsArch -eq "amd64_arm64") {
 
 # perl Configure no-shared no-ssl3 enable-capieng -utf-8
 
-$opensslflags = "Configure no-shared no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8 " + `
-    "$OPENSSL_ARCH `"--prefix=$Prefix`" `"--openssldir=$Prefix`""
+$openssl_options = "Configure no-shared no-legacy  no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8"
+$openssl_options = "${openssl_options} $OPENSSL_ARCH `"--prefix=$MID_INSTALL_DIR`" `"--$OPENSSL_SOURCE_DIR=$MID_INSTALL_DIR`""
 
-$openssldir = Join-Path $WD $OPENSSL_FILE
-
-$ec = Exec -FilePath $Perlexe -Argv $opensslflags -WD $openssldir
+$ec = Exec -FilePath $Perlexe -Argv $openssl_options -WD $OPENSSL_SOURCE_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: config error"
     exit 1
 }
 
-$ec = Exec -FilePath nmake -Argv "-f makefile build_libs" -WD $openssldir
+$ec = Exec -FilePath nmake -Argv "-f makefile build_libs" -WD $OPENSSL_SOURCE_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: build error"
     exit 1
 }
 
-$ec = Exec -FilePath nmake -Argv "-f makefile install_dev" -WD $openssldir
+$ec = Exec -FilePath nmake -Argv "-f makefile install_dev" -WD $OPENSSL_SOURCE_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "openssl: install_dev error"
     exit 1
 }
-# build brotli static
-######################################################### Brotli
-Write-Host -ForegroundColor Yellow "Build brotli $BROTLI_VERSION"
-if (!(DecompressTar -URL $BROTLI_URL -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
+
+######################################################### nghttp3
+Write-Host -ForegroundColor Yellow "Build nghttp3 $NGHTTP3_VERSION"
+if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.gz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
 
-$BDIR = Join-Path $WD $BROTLI_FILE
-$BBUILD = Join-Path $BDIR "out"
-$BPATCH = Join-Path $PSScriptRoot "patch/brotli.patch"
+$NGHTTP3_SOURCE_DIR = Join-Path $WD $NGHTTP3_FILE
+$NGHTTP3_BUILD_DIR = Join-Path $NGHTTP3_SOURCE_DIR "build"
 
-if (!(MkdirAll -Dir $BBUILD)) {
+if (!(MkdirAll -Dir $NGHTTP3_BUILD_DIR)) {
     exit 1
 }
 
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$BPATCH`"" -WD $BDIR
+$nghttp3_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DENABLE_LIB_ONLY=ON -DENABLE_STATIC_CRT=ON" 
+$nghttp3_options = "${nghttp3_options} `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .." 
+
+$ec = Exec -FilePath $cmakeexe -Argv $nghttp3_options -WD $NGHTTP3_BUILD_DIR
 if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $BPATCH failed"
-}
-
-
-$brotliflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
-    "-DBROTLI_DISABLE_TESTS=ON `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
-
-
-$ec = Exec -FilePath $cmakeexe -Argv $brotliflags -WD $BBUILD
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "brotli: create build.ninja error"
+    Write-Host -ForegroundColor Red "nghttp3: create build.ninja error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $BBUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $NGHTTP3_BUILD_DIR
 if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "brotli: build error"
+    Write-Host -ForegroundColor Red "nghttp3: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $BBUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $NGHTTP3_BUILD_DIR
 if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "brotli: install error"
+    Write-Host -ForegroundColor Red "nghttp3: install error"
     exit 1
 }
 
-Move-Item -Path "$Prefix/lib/brotlicommon-static.lib"   "$Prefix/lib/brotlicommon.lib"  -Force -ErrorAction SilentlyContinue
-Move-Item -Path "$Prefix/lib/brotlidec-static.lib"   "$Prefix/lib/brotlidec.lib"  -Force -ErrorAction SilentlyContinue
-Move-Item -Path "$Prefix/lib/brotlienc-static.lib"   "$Prefix/lib/brotlienc.lib"  -Force -ErrorAction SilentlyContinue
+######################################################### ngtcp2
+Write-Host -ForegroundColor Yellow "Build ngtcp2 $NGTCP2_VERSION"
+if (!(DecompressTar -URL $NGTCP2_URL -File "$NGTCP2_FILE.tar.gz" -Hash $NGTCP2_HASH)) {
+    exit 1
+}
 
-######################################################### Nghttp2
+$NGTCP2_SOURCE_DIR = Join-Path $WD $NGTCP2_FILE
+$NGTCP2_BUILD_DIR = Join-Path $NGTCP2_SOURCE_DIR "build"
+
+if (!(MkdirAll -Dir $NGTCP2_BUILD_DIR)) {
+    exit 1
+}
+
+$NGTCP2_PATCHH = Join-Path $PSScriptRoot "patch/ngtcp2.patch"
+$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$NGTCP2_PATCHH`"" -WD $NGTCP2_SOURCE_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "Apply $NGTCP2_PATCHH failed"
+}
+
+$ngtcp2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DENABLE_LIB_ONLY=ON -DENABLE_STATIC_CRT=ON"
+$ngtcp2_options = "${ngtcp2_options} -DENABLE_OPENSSL=ON -DHAVE_SSL_IS_QUIC=ON"
+$ngtcp2_options = "${ngtcp2_options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`" `"-DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$ngtcp2_options = "${ngtcp2_options} `"-DLIBNGHTTP3_LIBRARY=${MID_INSTALL_DIR}/lib`" `"-DLIBNGHTTP3_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$ngtcp2_options = "${ngtcp2_options} -DLIBEV_LIBRARY="
+$ngtcp2_options = "${ngtcp2_options} `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .."
+
+$ec = Exec -FilePath $cmakeexe -Argv $ngtcp2_options -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: create build.ninja error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: build error"
+    exit 1
+}
+
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: install error"
+    exit 1
+}
+
+# FIXME: ngtcp2 no ENABLE_STATIC_LIB
+Move-Item -Path "$MID_INSTALL_DIR/lib/ngtcp2_static.lib"   "$MID_INSTALL_DIR/lib/ngtcp2.lib"  -Force -ErrorAction SilentlyContinue
+Move-Item -Path "$MID_INSTALL_DIR/lib/ngtcp2_crypto_openssl_static.lib"   "$MID_INSTALL_DIR/lib/ngtcp2_crypto_openssl.lib"  -Force -ErrorAction SilentlyContinue
+
+######################################################### nghttp2
 Write-Host -ForegroundColor Yellow "Build nghttp2 $NGHTTP2_VERSION"
 if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_FILE.tar.gz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
 
-$NGDIR = Join-Path $WD $NGHTTP2_FILE
-$NGBUILD = Join-Path $NGDIR "build"
-$NGPATCH = Join-Path $PSScriptRoot "patch/nghttp2.patch"
+$NGHTTP2_SOURCE_DIR = Join-Path $WD $NGHTTP2_FILE
+$NGHTTP2_BUILD_DIR = Join-Path $NGHTTP2_SOURCE_DIR "build"
 
-if (!(MkdirAll -Dir $NGBUILD)) {
+if (!(MkdirAll -Dir $NGHTTP2_BUILD_DIR)) {
     exit 1
 }
 
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$NGPATCH`"" -WD $NGDIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $NGPATCH failed"
-}
+$nghttp2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DENABLE_LIB_ONLY=ON -DENABLE_ASIO_LIB=OFF -DENABLE_STATIC_CRT=ON"
+$nghttp2_options = "${nghttp2_options} -DENABLE_OPENSSL=ON -DHAVE_SSL_IS_QUIC=ON"
+$nghttp2_options = "${nghttp2_options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`" `"-DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$nghttp2_options = "${nghttp2_options} `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .." 
 
-$ngflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON " + `
-    "-DENABLE_LIB_ONLY=ON -DENABLE_ASIO_LIB=OFF `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
-
-$ec = Exec -FilePath $cmakeexe -Argv $ngflags -WD $NGBUILD
+$ec = Exec -FilePath $cmakeexe -Argv $nghttp2_options -WD $NGHTTP2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: create build.ninja error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $NGBUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $NGHTTP2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $NGBUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $NGHTTP2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: install error"
     exit 1
 }
 
-if (Test-Path "$Prefix/lib/nghttp2_static.lib") {
-    Copy-Item -Path "$Prefix/lib/nghttp2_static.lib"   "$Prefix/lib/nghttp2.lib"  -Force -ErrorAction SilentlyContinue
-}
 
 ############################################################# Libssh2
 Write-Host -ForegroundColor Yellow "Build libssh2 $LIBSSH2_VERSION"
 if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
     exit 1
 }
-$LIBSSH2DIR = Join-Path $WD $LIBSSH2_FILE
-$LIBSSH2BUILD = Join-Path $LIBSSH2DIR "build"
-$LIBSSH2PATCH = Join-Path $PSScriptRoot "patch/libssh2.patch"
+$LIBSSH2_SOURCE_DIR = Join-Path $WD $LIBSSH2_FILE
+$LIBSSH2_BUILD_DIR = Join-Path $LIBSSH2_SOURCE_DIR "build"
+$LIBSSH2_PATCHH = Join-Path $PSScriptRoot "patch/libssh2.patch"
 
-if (!(MkdirAll -Dir $LIBSSH2BUILD)) {
+if (!(MkdirAll -Dir $LIBSSH2_BUILD_DIR)) {
     exit 1
 }
 
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$LIBSSH2PATCH`"" -WD $LIBSSH2DIR
+$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$LIBSSH2_PATCHH`"" -WD $LIBSSH2_SOURCE_DIR
 if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $LIBSSH2PATCH failed"
+    Write-Host -ForegroundColor Red "Apply $LIBSSH2_PATCHH failed"
 }
 
-$libssh2flags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
-    "-DBUILD_EXAMPLES=OFF " + `
-    "-DBUILD_TESTING=OFF " + `
-    "-DENABLE_ZLIB_COMPRESSION=ON " + `
-    "`"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
+$LIBSSH2_CLAGS = "-DHAVE_EVP_AES_128_CTR=1 -DOPENSSL_SUPPRESS_DEPRECATED"
+$libssh2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_ZLIB_COMPRESSION=ON"
+$libssh2_options = "${libssh2_options} -DCRYPTO_BACKEND=OpenSSL"
+$libssh2_options = "${libssh2_options} -DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}"
+$libssh2_options = "${libssh2_options} -DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include"
+$libssh2_options = "${libssh2_options} -DENABLE_ZLIB_COMPRESSION=ON"
+$libssh2_options = "${libssh2_options} -DZLIB_LIBRARY=${MID_INSTALL_DIR}/lib/zlib.lib"
+$libssh2_options = "${libssh2_options} -DZLIB_INCLUDE_DIR=${MID_INSTALL_DIR}/include"
+$libssh2_options = "${libssh2_options} `"-DCMAKE_C_FLAGS=${LIBSSH2_CLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .. " 
 
-$ec = Exec -FilePath $cmakeexe -Argv $libssh2flags -WD $LIBSSH2BUILD
+$ec = Exec -FilePath $cmakeexe -Argv $libssh2_options -WD $LIBSSH2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: create build.ninja error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $LIBSSH2BUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $LIBSSH2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $LIBSSH2BUILD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $LIBSSH2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "libssh2: install error"
     exit 1
 }
-
-
-############################################################# zstd
-Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
-if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
-    exit 1
-}
-
-$zstdflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_STATIC=ON " + `
-    "-DZSTD_BUILD_PROGRAMS=OFF " + `
-    "-DZSTD_BUILD_SHARED=OFF " + `
-    "-DZSTD_USE_STATIC_RUNTIME=ON `"-DCMAKE_INSTALL_PREFIX=$Prefix`" .."
-
-$ZSTDDIR = Join-Path $WD "$ZSTD_FILE/build/cmake"
-$ZSTDBUILD = Join-Path $ZSTDDIR "build"
-if (!(MkdirAll -Dir $ZSTDBUILD)) {
-    exit 1
-}
-
-$ec = Exec -FilePath $cmakeexe -Argv $zstdflags -WD $ZSTDBUILD
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "zstd: create build.ninja error"
-    exit 1
-}
-
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $ZSTDBUILD
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "zstd: build error"
-    exit 1
-}
-
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $ZSTDBUILD
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "zstd: install error"
-    exit 1
-}
-
-Move-Item -Path "$Prefix/lib/zstd_static.lib"   "$Prefix/lib/zstd.lib"  -Force -ErrorAction SilentlyContinue
 
 ############################################################## CURL
 
@@ -473,59 +548,72 @@ if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.gz" -Hash $CURL_HASH)) 
     exit 1
 }
 
-$CURLDIR = Join-Path $WD $CURL_FILE
-$CURLBD = Join-Path $CURLDIR "build"
-$CURLPATCH = Join-Path $PSScriptRoot "patch/curl.patch"
-$CURLICON = Join-Path $PSScriptRoot "patch/curl.ico"
+$CURL_SOURCE_DIR = Join-Path $WD $CURL_FILE
+$CURL_BUILD_DIR = Join-Path $CURL_SOURCE_DIR "build"
+$CURL_PATCH = Join-Path $PSScriptRoot "patch/curl.patch"
+$CURL_ICON_FILE = Join-Path $PSScriptRoot "patch/curl.ico"
 
-if (!(MkdirAll -Dir $CURLBD)) {
+if (!(MkdirAll -Dir $CURL_BUILD_DIR)) {
     exit 1
 }
 
 # copy icon to path
-Copy-Item $CURLICON -Destination "$CURLDIR/src"-Force -ErrorAction SilentlyContinue
+Copy-Item $CURL_ICON_FILE -Destination "$CURL_SOURCE_DIR/src"-Force -ErrorAction SilentlyContinue
 
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$CURLPATCH`"" -WD $CURLDIR
+$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$CURL_PATCH`"" -WD $CURL_SOURCE_DIR
 if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $CURLPATCH failed"
+    Write-Host -ForegroundColor Red "Apply $CURL_PATCH failed"
 }
 
-#https://github.com/curl/curl/blob/master/CMake/FindBrotli.cmake
-$BROTLIDEC_LIBRARY = Join-Path $Prefix "lib/brotlidec-static.lib"
-$BROTLICOMMON_LIBRARY = Join-Path $Prefix "lib/brotlicommon-static.lib"
-$BROTLI_INCLUDE_DIR = Join-Path $Prefix "include"
-# we now not use this!!!!
-[void]$BROTLIDEC_LIBRARY
-[void]$BROTLICOMMON_LIBRARY
-[void]$BROTLI_INCLUDE_DIR
-## Use codepage 1252
+$CURL_CFLAGS = "-DHAS_ALPN"
+$options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=ON -DCURL_STATIC_CRT=ON -DCMAKE_RC_FLAGS=-c1252"
+$options = "${options} -DCURL_TARGET_WINDOWS_VERSION=0x0A00 -DCURL_USE_SCHANNEL=ON"
+# zlib
+$options = "${options} -DUSE_ZLIB=ON"
+$options = "${options} `"-DZLIB_LIBRARY=${MID_INSTALL_DIR}/lib/zlib.lib`""
+$options = "${options} `"-DZLIB_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+# openssl-quic
+$options = "${options} -DCURL_USE_OPENSSL=ON"
+$options = "${options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`""
+$options = "${options} `"-DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$options = "${options} -DCURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG=ON"
+$CURL_CFLAGS = "${CURL_CFLAGS} -DHAVE_OPENSSL_SRP -DUSE_TLS_SRP"
+# libssh2
+$options = "${options} -DCURL_USE_LIBSSH2=ON"
+$options = "${options} `"-DLIBSSH2_LIBRARY=${MID_INSTALL_DIR}/lib/libssh2.lib`""
+$options = "${options} `"-DLIBSSH2_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+# nghttp2
+$options = "${options} -DUSE_NGHTTP2=ON"
+$options = "${options} `"-DNGHTTP2_LIBRARY=${MID_INSTALL_DIR}/lib/nghttp2.lib`""
+$options = "${options} `"-DNGHTTP2_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP2_STATICLIB"
+# nghttp3
+$options = "${options} -DUSE_NGHTTP3=ON"
+$options = "${options} `"-DNGHTTP3_LIBRARY=${MID_INSTALL_DIR}/lib/nghttp3.lib`""
+$options = "${options} `"-DNGHTTP3_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP3_STATICLIB"
 
-$curlflags = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF " + `
-    "-DUSE_NGHTTP2=ON -DBUILD_TESTING=OFF " + `
-    "-DBUILD_CURL_EXE=ON " + `
-    "-DCURL_STATIC_CRT=ON " + `
-    "-DCURL_USE_OPENSSL=ON " + `
-    "-DCURL_USE_SCHANNEL=ON " + `
-    "-DCURL_USE_LIBSSH2=ON " + `
-    "-DCURL_ZSTD=ON " + `
-    "-DCURL_BROTLI=ON " + `
-    "-DCMAKE_RC_FLAGS=-c1252 " + `
-    "`"-DBROTLI_DIR=$Prefix`" " + `
-    "`"-DCMAKE_INSTALL_PREFIX=$CURLOUT`" .."
+$options = "${options} -DUSE_NGTCP2=ON"
+$options = "${options} `"-DNGTCP2_LIBRARY=${MID_INSTALL_DIR}/lib/ngtcp2.lib`""
+$options = "${options} `"-DNGTCP2_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+$options = "${options} `"-DCMAKE_LIBRARY_PATH=${MID_INSTALL_DIR}/lib`""
+$CURL_CFLAGS = "${CURL_CFLAGS} -DNGTCP2_STATICLIB"
 
-$ec = Exec -FilePath $cmakeexe -Argv $curlflags -WD $CURLBD
+$options = "${options} `"-DCMAKE_C_FLAGS=${CURL_CFLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$CURL_BUILD_OUT`" .."
+
+$ec = Exec -FilePath $cmakeexe -Argv $options -WD $CURL_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: create build.ninja error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $CURLBD
+$ec = Exec -FilePath $Ninjaexe -Argv "all" -WD $CURL_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: build error"
     exit 1
 }
 
-$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $CURLBD
+$ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $CURL_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: install error"
     exit 1
@@ -533,7 +621,7 @@ if ($ec -ne 0) {
 
 # download curl-ca-bundle.crt
 
-$CA_BUNDLE = Join-Path $CURLOUT "bin/curl-ca-bundle.crt"
+$CA_BUNDLE = Join-Path $CURL_BUILD_OUT "bin/curl-ca-bundle.crt"
 
 if (!(WinGet -URL $CA_BUNDLE_URL -O $CA_BUNDLE)) {
     Write-Host -ForegroundColor Red "download curl-ca-bundle.crt  error"
@@ -546,8 +634,8 @@ if (!$RefName.StartsWith("refs/heads/")) {
     $VersionName = $RefName
 }
 
-$DestinationPath = "$CURLDEST\$WINCURL_TARGET-$VersionName.zip"
-Compress-Archive -Path "$CURLOUT\*" -DestinationPath $DestinationPath
+$DestinationPath = "$CURL_DESTINATION/$wincurl-${Target}-$VersionName.zip"
+Compress-Archive -Path "$CURL_BUILD_OUT/*" -DestinationPath $DestinationPath
 $obj = Get-FileHash -Algorithm SHA256 $DestinationPath
 $baseName = Split-Path -Leaf $DestinationPath
 $hashtext = $obj.Algorithm + ":" + $obj.Hash.ToLower()

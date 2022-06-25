@@ -1,0 +1,20 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0ae1c91..c36e6e4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -44,6 +44,15 @@ set(CRYPTO_GNUTLS_LT_CURRENT 3)
+ set(CRYPTO_GNUTLS_LT_REVISION 0)
+ set(CRYPTO_GNUTLS_LT_AGE 1)
+ 
++if(MSVC)
++  set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")
++  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS=1 -utf-8 -W3 -DUNICODE=1 -D_UNICODE=1 -wd26812")
++  set(CMAKE_CXX_FLAGS
++      "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS=1 -utf-8 -W3 -permissive- -Zc:__cplusplus -DUNICODE=1 -D_UNICODE=1 -wd26812"
++  )
++  set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -c65001")
++endif(MSVC)
++
+ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
+ include(Version)
+ 

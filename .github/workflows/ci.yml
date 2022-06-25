@@ -22,17 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        wincurl_target: [wincurl-win64, wincurl-win32, wincurl-arm64]
+        target: [wincurl-win64,wincurl-arm64]
         include:
-          - wincurl_target: wincurl-win64
-            msvc_arch: amd64
-            build_dir: build
-          - wincurl_target: wincurl-win32
-            msvc_arch: amd64_x86
-            build_dir: build.win32
-          - wincurl_target: wincurl-arm64
-            msvc_arch: amd64_arm64
-            build_dir: build.arm64
+          - target: wincurl-win64
+            short_target: win64
+          - target: wincurl-arm64
+            short_target: arm64
     steps:
       - uses: actions/checkout@v2
         with:
@@ -44,7 +39,7 @@ jobs:
           msvc_arch: ${{ matrix.msvc_arch }}
           ref_name: ${{ github.ref }}
           build_dir: ${{ matrix.build_dir }}
-        run: ./build.bat
+        run: pwsh -NoProfile -NoLogo -ExecutionPolicy unrestricted -File "./build.ps1" -Target "${{ matrix.short_target }}"
       - name: check_artifact_hash
         shell: pwsh
         run: |
@@ -57,14 +52,14 @@ jobs:
           Write-Host "$env:WINCURL_ASSET_NAME`n$hashtext"
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.wincurl_target }}
-          path: dest/*
+          name: ${{ matrix.target }}
+          path: destination/*
       - name: Upload release
         uses: svenstaro/upload-release-action@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           file_glob: true
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dest/*
+          file: destination/*
           tag: ${{ github.ref }}
           overwrite: true
