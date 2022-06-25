@@ -43,7 +43,7 @@ jobs:
       - name: check_artifact_hash
         shell: pwsh
         run: |
-          Set-Location dest
+          Set-Location destination
           $item=Get-Item *.zip
           $obj=Get-FileHash -Algorithm SHA256 $item.FullName
           $baseName=Split-Path -Leaf $item.FullName

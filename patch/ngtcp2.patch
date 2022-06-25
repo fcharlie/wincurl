@@ -1,10 +1,10 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 0ae1c91..c36e6e4 100644
+index 8afc9314..e90c792e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -44,6 +44,15 @@ set(CRYPTO_GNUTLS_LT_CURRENT 3)
- set(CRYPTO_GNUTLS_LT_REVISION 0)
- set(CRYPTO_GNUTLS_LT_AGE 1)
+@@ -75,6 +75,15 @@ endif()
+ 
+ include(GNUInstallDirs)
  
 +if(MSVC)
 +  set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -15,6 +15,19 @@ index 0ae1c91..c36e6e4 100644
 +  set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -c65001")
 +endif(MSVC)
 +
- set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
- include(Version)
+ include(CMakeOptions.txt)
  
+ # Do not disable assertions based on CMAKE_BUILD_TYPE.
+diff --git a/lib/ngtcp2_ringbuf.c b/lib/ngtcp2_ringbuf.c
+index a6b3f73e..7471cce2 100644
+--- a/lib/ngtcp2_ringbuf.c
++++ b/lib/ngtcp2_ringbuf.c
+@@ -32,7 +32,7 @@
+ #include "ngtcp2_macro.h"
+ 
+ #if defined(_MSC_VER) && defined(_M_ARM64)
+-unsigned int __popcnt(unsigned int x) {
++__forceinline unsigned int __popcnt(unsigned int x) {
+   unsigned int c = 0;
+   for (; x; ++c) {
+     x &= x - 1;
