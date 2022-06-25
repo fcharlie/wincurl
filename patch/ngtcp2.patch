@@ -19,7 +19,7 @@ index 8afc9314..e90c792e 100644
  
  # Do not disable assertions based on CMAKE_BUILD_TYPE.
 diff --git a/lib/ngtcp2_ringbuf.c b/lib/ngtcp2_ringbuf.c
-index a6b3f73e..7471cce2 100644
+index a6b3f73e..f1c6de8a 100644
 --- a/lib/ngtcp2_ringbuf.c
 +++ b/lib/ngtcp2_ringbuf.c
 @@ -32,7 +32,7 @@
@@ -27,7 +27,7 @@ index a6b3f73e..7471cce2 100644
  
  #if defined(_MSC_VER) && defined(_M_ARM64)
 -unsigned int __popcnt(unsigned int x) {
-+__forceinline unsigned int __popcnt(unsigned int x) {
++static __forceinline unsigned int __popcnt(unsigned int x) {
    unsigned int c = 0;
    for (; x; ++c) {
      x &= x - 1;

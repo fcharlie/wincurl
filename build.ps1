@@ -634,7 +634,7 @@ if (!$RefName.StartsWith("refs/heads/")) {
     $VersionName = $RefName
 }
 
-$DestinationPath = "$CURL_DESTINATION/$wincurl-${Target}-$VersionName.zip"
+$DestinationPath = "$CURL_DESTINATION/wincurl-${Target}-$VersionName.zip"
 Compress-Archive -Path "$CURL_BUILD_OUT/*" -DestinationPath $DestinationPath
 $obj = Get-FileHash -Algorithm SHA256 $DestinationPath
 $baseName = Split-Path -Leaf $DestinationPath
