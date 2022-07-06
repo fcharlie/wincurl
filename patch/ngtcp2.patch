@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 8afc9314..e90c792e 100644
+index 0ae1c919..1836d24d 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -75,6 +75,15 @@ endif()
@@ -18,6 +18,29 @@ index 8afc9314..e90c792e 100644
  include(CMakeOptions.txt)
  
  # Do not disable assertions based on CMAKE_BUILD_TYPE.
+@@ -114,6 +123,9 @@ if(ENABLE_OPENSSL AND OPENSSL_FOUND)
+   cmake_push_check_state()
+   set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
+   set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
++  if(WIN32)
++    set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}" "ws2_32" "bcrypt")
++  endif()
+   check_symbol_exists(SSL_is_quic "openssl/ssl.h" HAVE_SSL_IS_QUIC)
+   if(NOT HAVE_SSL_IS_QUIC)
+     message(WARNING "Disabling OpenSSL due to lack of QUIC support in ${OPENSSL_LIBRARIES}")
+diff --git a/lib/ngtcp2_net.h b/lib/ngtcp2_net.h
+index f8d8e518..b1f28096 100644
+--- a/lib/ngtcp2_net.h
++++ b/lib/ngtcp2_net.h
+@@ -101,7 +101,7 @@ STIN uint32_t ngtcp2_htonl(uint32_t hostlong) {
+ STIN uint16_t ngtcp2_htons(uint16_t hostshort) {
+   uint16_t res;
+   unsigned char *p = (unsigned char *)&res;
+-  *p++ = (unsigned char)hostshort >> 8;
++  *p++ = (unsigned char)(hostshort >> 8);
+   *p = hostshort & 0xffu;
+   return res;
+ }
 diff --git a/lib/ngtcp2_ringbuf.c b/lib/ngtcp2_ringbuf.c
 index a6b3f73e..f1c6de8a 100644
 --- a/lib/ngtcp2_ringbuf.c
