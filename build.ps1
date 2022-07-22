@@ -191,7 +191,7 @@ if (![String]::IsNullOrEmpty($env:BUILD_DIR)) {
     $WD = $env:BUILD_DIR
 }
 $WD = Join-Path $PSScriptRoot $WD
-if (!(MkdirAll -Dir $WD)) {
+if (!(MakeDirs -Dir $WD)) {
     exit 1
 }
 
@@ -209,11 +209,11 @@ $CURL_DESTINATION = Join-Path $PSScriptRoot "destination"
 
 Write-Host "we will deploy curl to: $CURLPrefix"
 
-if (!(MkdirAll -Dir $MID_INSTALL_DIR)) {
+if (!(MakeDirs -Dir $MID_INSTALL_DIR)) {
     exit 1
 }
 
-if (!(MkdirAll -Dir $CURL_DESTINATION)) {
+if (!(MakeDirs -Dir $CURL_DESTINATION)) {
     exit 1
 }
 
@@ -234,7 +234,7 @@ Copy-Item $ZSTD_CMAKE -Destination $ZSTD_SOURCE_DIR -Force
 $zstd_options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .."
 
 $ZSTD_BUILD = Join-Path $ZSTD_SOURCE_DIR "out"
-if (!(MkdirAll -Dir $ZSTD_BUILD)) {
+if (!(MakeDirs -Dir $ZSTD_BUILD)) {
     exit 1
 }
 
@@ -271,7 +271,7 @@ Copy-Item $BROTLI_CMAKE -Destination $BROTLI_SOURCE_DIR -Force
 
 
 $BROTLI_BUILD_DIR = Join-Path $BROTLI_SOURCE_DIR "out"
-if (!(MkdirAll -Dir $BROTLI_BUILD_DIR)) {
+if (!(MakeDirs -Dir $BROTLI_BUILD_DIR)) {
     exit 1
 }
 
@@ -308,7 +308,7 @@ Write-Host -ForegroundColor Yellow "Apply zlib CMakeLists.txt ..."
 $ZLIB_CMAKE = Join-Path $PSScriptRoot "cmake/zlib/CMakeLists.txt"
 Copy-Item $ZLIB_CMAKE -Destination $ZLIB_SOURCE_DIR -Force
 
-if (!(MkdirAll -Dir $ZLIB_BUILD_DIR)) {
+if (!(MakeDirs -Dir $ZLIB_BUILD_DIR)) {
     exit 1
 }
 
@@ -385,7 +385,7 @@ if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.gz" -Hash $NGHTTP
 $NGHTTP3_SOURCE_DIR = Join-Path $WD $NGHTTP3_FILE
 $NGHTTP3_BUILD_DIR = Join-Path $NGHTTP3_SOURCE_DIR "build"
 
-if (!(MkdirAll -Dir $NGHTTP3_BUILD_DIR)) {
+if (!(MakeDirs -Dir $NGHTTP3_BUILD_DIR)) {
     exit 1
 }
 
@@ -419,7 +419,7 @@ if (!(DecompressTar -URL $NGTCP2_URL -File "$NGTCP2_FILE.tar.gz" -Hash $NGTCP2_H
 $NGTCP2_SOURCE_DIR = Join-Path $WD $NGTCP2_FILE
 $NGTCP2_BUILD_DIR = Join-Path $NGTCP2_SOURCE_DIR "build"
 
-if (!(MkdirAll -Dir $NGTCP2_BUILD_DIR)) {
+if (!(MakeDirs -Dir $NGTCP2_BUILD_DIR)) {
     exit 1
 }
 
@@ -467,7 +467,7 @@ if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_FILE.tar.gz" -Hash $NGHTTP
 $NGHTTP2_SOURCE_DIR = Join-Path $WD $NGHTTP2_FILE
 $NGHTTP2_BUILD_DIR = Join-Path $NGHTTP2_SOURCE_DIR "build"
 
-if (!(MkdirAll -Dir $NGHTTP2_BUILD_DIR)) {
+if (!(MakeDirs -Dir $NGHTTP2_BUILD_DIR)) {
     exit 1
 }
 
@@ -504,7 +504,7 @@ $LIBSSH2_SOURCE_DIR = Join-Path $WD $LIBSSH2_FILE
 $LIBSSH2_BUILD_DIR = Join-Path $LIBSSH2_SOURCE_DIR "build"
 $LIBSSH2_PATCHH = Join-Path $PSScriptRoot "patch/libssh2.patch"
 
-if (!(MkdirAll -Dir $LIBSSH2_BUILD_DIR)) {
+if (!(MakeDirs -Dir $LIBSSH2_BUILD_DIR)) {
     exit 1
 }
 
@@ -553,7 +553,7 @@ $CURL_BUILD_DIR = Join-Path $CURL_SOURCE_DIR "build"
 $CURL_PATCH = Join-Path $PSScriptRoot "patch/curl.patch"
 $CURL_ICON_FILE = Join-Path $PSScriptRoot "patch/curl.ico"
 
-if (!(MkdirAll -Dir $CURL_BUILD_DIR)) {
+if (!(MakeDirs -Dir $CURL_BUILD_DIR)) {
     exit 1
 }
 

@@ -41,7 +41,7 @@ Function FindCommand {
     return $command[0].Source
 }
 
-Function MkdirAll {
+Function MakeDirs {
     param(
         [String]$Dir
     )
