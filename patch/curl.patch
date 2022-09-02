@@ -1,44 +1,32 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 45d763d5a..6604aa74e 100644
+index cb597ca8e..ab7067bb6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -508,23 +508,23 @@ if(USE_NGHTTP2)
-   list(APPEND CURL_LIBS ${NGHTTP2_LIBRARIES})
- endif()
+@@ -491,14 +491,15 @@ endif()
  
--function(CheckQuicSupportInOpenSSL)
--  # Be sure that the OpenSSL library actually supports QUIC.
+ function(CheckQuicSupportInOpenSSL)
+   # Be sure that the OpenSSL library actually supports QUIC.
 -  cmake_push_check_state()
 -  set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
 -  set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
 -  check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
 -  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
--    message(FATAL_ERROR "QUIC support is missing in OpenSSL/boringssl. Try setting -DOPENSSL_ROOT_DIR")
+-    message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
 -  endif()
 -  cmake_pop_check_state()
--endfunction()
-+# function(CheckQuicSupportInOpenSSL)
-+#   # Be sure that the OpenSSL library actually supports QUIC.
-+#   cmake_push_check_state()
-+#   set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
-+#   set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
-+#   check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
-+#   if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
-+#     message(FATAL_ERROR "QUIC support is missing in OpenSSL/boringssl. Try setting -DOPENSSL_ROOT_DIR")
-+#   endif()
-+#   cmake_pop_check_state()
-+# endfunction()
++  message(STATUS "disable quic support check")
++  # cmake_push_check_state()
++  # set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
++  # set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
++  # check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++  # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
++  # endif()
++  # cmake_pop_check_state()
+ endfunction()
  
  option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
- if(USE_NGTCP2)
-   if(USE_OPENSSL)
-     find_package(NGTCP2 REQUIRED OpenSSL)
--    CheckQuicSupportInOpenSSL()
-+    #CheckQuicSupportInOpenSSL()
-   elseif(USE_GNUTLS)
-     # TODO add GnuTLS support as vtls library.
-     find_package(NGTCP2 REQUIRED GnuTLS)
-@@ -717,17 +717,21 @@ if(ZLIB_FOUND)
+@@ -697,17 +698,21 @@ if(ZLIB_FOUND)
    list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
  endif()
  
