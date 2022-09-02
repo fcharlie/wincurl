@@ -378,7 +378,7 @@ if ($ec -ne 0) {
 
 ######################################################### nghttp3
 Write-Host -ForegroundColor Yellow "Build nghttp3 $NGHTTP3_VERSION"
-if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.gz" -Hash $NGHTTP3_HASH)) {
+if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
 
@@ -412,7 +412,7 @@ if ($ec -ne 0) {
 
 ######################################################### ngtcp2
 Write-Host -ForegroundColor Yellow "Build ngtcp2 $NGTCP2_VERSION"
-if (!(DecompressTar -URL $NGTCP2_URL -File "$NGTCP2_FILE.tar.gz" -Hash $NGTCP2_HASH)) {
+if (!(DecompressTar -URL $NGTCP2_URL -File "$NGTCP2_FILE.tar.xz" -Hash $NGTCP2_HASH)) {
     exit 1
 }
 
@@ -460,7 +460,7 @@ Move-Item -Path "$MID_INSTALL_DIR/lib/ngtcp2_crypto_openssl_static.lib"   "$MID_
 
 ######################################################### nghttp2
 Write-Host -ForegroundColor Yellow "Build nghttp2 $NGHTTP2_VERSION"
-if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_FILE.tar.gz" -Hash $NGHTTP2_HASH)) {
+if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_FILE.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
 
@@ -544,7 +544,7 @@ if ($ec -ne 0) {
 ############################################################## CURL
 
 Write-Host -ForegroundColor Yellow "Final build curl $CURL_VERSION"
-if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.gz" -Hash $CURL_HASH)) {
+if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
 
