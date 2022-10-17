@@ -39,7 +39,7 @@ $OPENSSL_QUIC_HASH = "766878d2c97d13ea36254ae3b1bf553939ac111f3f1b3449b8d777aca7
 
 # Filename
 $ZLIB_FILENAME = "zlib-${ZLIB_VERSION}"
-$ZLIB_URL = "https://github.com/madler/zlib/archive/v${ZLIB_VERSION}.tar.gz"
+$ZLIB_URL = "https://zlib.net/zlib-${ZLIB_VERSION}.tar.xz"
 
 $OPENSSL_URL = "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
 $OPENSSL_FILE = "openssl-${OPENSSL_VERSION}"
