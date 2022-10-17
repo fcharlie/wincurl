@@ -297,7 +297,7 @@ if ($ec -ne 0) {
 }
 
 ################################################## Zlib
-if (!(DecompressTar -URL $ZLIB_URL -File "$ZLIB_FILENAME.tar.gz" -Hash $ZLIB_HASH)) {
+if (!(DecompressTar -URL $ZLIB_URL -File "$ZLIB_FILENAME.tar.xz" -Hash $ZLIB_HASH)) {
     exit 1
 }
 
