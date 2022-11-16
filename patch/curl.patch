@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index f8cdf1aab..6c74da6e3 100644
+index 13aff5f4b..09835d61a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -78,11 +78,11 @@ include_directories(${CURL_SOURCE_DIR}/include)
+@@ -99,11 +99,11 @@ include_directories(${CURL_SOURCE_DIR}/include)
  option(CURL_WERROR "Turn compiler warnings into errors" OFF)
  option(PICKY_COMPILER "Enable picky compiler options" ON)
  option(BUILD_CURL_EXE "Set to ON to build curl executable." ON)
@@ -17,7 +17,7 @@ index f8cdf1aab..6c74da6e3 100644
    set(CURL_TARGET_WINDOWS_VERSION "" CACHE STRING "Minimum target Windows version as hex string")
    if(CURL_TARGET_WINDOWS_VERSION)
      add_definitions(-D_WIN32_WINNT=${CURL_TARGET_WINDOWS_VERSION})
-@@ -95,7 +95,7 @@ if(WIN32)
+@@ -117,7 +117,7 @@ if(WIN32)
      endif()
    endif()
  endif()
@@ -26,31 +26,35 @@ index f8cdf1aab..6c74da6e3 100644
  
  cmake_dependent_option(ENABLE_THREADED_RESOLVER "Set to ON to enable threaded DNS lookup"
          ON "NOT ENABLE_ARES"
-@@ -491,14 +491,15 @@ endif()
+@@ -519,16 +519,17 @@ endif()
  
  function(CheckQuicSupportInOpenSSL)
    # Be sure that the OpenSSL library actually supports QUIC.
--  cmake_push_check_state()
--  set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
--  set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
--  check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
+-  if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    cmake_push_check_state()
+-    set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
+-    set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
+-    check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    cmake_pop_check_state()
+-  endif()
 -  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
 -    message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
 -  endif()
--  cmake_pop_check_state()
 +  message(STATUS "disable quic support check")
-+  # cmake_push_check_state()
-+  # set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
-+  # set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
-+  # check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++  # if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   cmake_push_check_state()
++  #   set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
++  #   set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
++  #   check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   cmake_pop_check_state()
++  # endif()
 +  # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
 +  #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
 +  # endif()
-+  # cmake_pop_check_state()
  endfunction()
  
  option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
-@@ -697,17 +698,21 @@ if(ZLIB_FOUND)
+@@ -726,17 +727,21 @@ if(ZLIB_FOUND)
    list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
  endif()
  
@@ -83,18 +87,6 @@ index f8cdf1aab..6c74da6e3 100644
  
  option(CURL_ZSTD "Set to ON to enable building curl with zstd support." OFF)
  set(HAVE_ZSTD OFF)
-@@ -1166,9 +1171,8 @@ if(WIN32)
-   curl_internal_test(HAVE_WIN32_WINNT)
-   if(HAVE_WIN32_WINNT)
-     string(REGEX MATCH ".*_WIN32_WINNT=0x[0-9a-fA-F]+" OUTPUT "${OUTPUT}")
--    string(REGEX REPLACE ".*_WIN32_WINNT=" "" OUTPUT "${OUTPUT}")
--    math(EXPR HAVE_WIN32_WINNT "${OUTPUT}" OUTPUT_FORMAT DECIMAL)
--    message(STATUS "Found _WIN32_WINNT=${OUTPUT} (${HAVE_WIN32_WINNT})")
-+    string(REGEX REPLACE ".*_WIN32_WINNT=" "" HAVE_WIN32_WINNT "${OUTPUT}")
-+    message(STATUS "Found _WIN32_WINNT=${HAVE_WIN32_WINNT}")
-   endif()
-   # avoid storing HAVE_WIN32_WINNT in CMake cache
-   unset(HAVE_WIN32_WINNT CACHE)
 diff --git a/src/curl.rc b/src/curl.rc
 index b0e328798..500ba5bd7 100644
 --- a/src/curl.rc
