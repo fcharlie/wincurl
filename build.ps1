@@ -353,6 +353,14 @@ elseif ($vsArch -eq "amd64_arm64") {
     $OPENSSL_ARCH = "VC-WIN64-ARM"
 }
 
+if ($OPENSSL_QUIC_VERSION -eq "3.0.8" -and $Target -eq "arm64") {
+    $OPENSSL_ARM64_PATCH = Join-Path $PSScriptRoot "patch/umul128-arm64.patch"
+    $ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$OPENSSL_ARM64_PATCH`"" -WD $OPENSSL_SOURCE_DIR
+    if ($ec -ne 0) {
+        Write-Host -ForegroundColor Red "Apply $OPENSSL_ARM64_PATCH failed"
+    }
+}
+
 # perl Configure no-shared no-ssl3 enable-capieng -utf-8
 
 $openssl_options = "Configure no-shared no-legacy  no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8"
