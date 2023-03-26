@@ -25,16 +25,16 @@ $CURL_HASH = "0a381cd82f4d00a9a334438b8ca239afea5bfefcfa9a1025f2bf118e79e0b5f0"
 
 
 # nghttp3-${NGHTTP3_VERSION}.tar.xz
-$NGHTTP3_VERSION = "0.9.0"
-$NGHTTP3_HASH = "d46320bf5e0557fe255f9cdda1725e564d73cc53be5365ef4db00788f4417fff"
+$NGHTTP3_VERSION = "0.10.0"
+$NGHTTP3_HASH = "4cde2aaefd5ad84438eeae661e1e42b0181fbd906e547088c91098c3ca169a82"
 
 # ngtcp2-${NGTCP2_VERSION}.tar.xz
-$NGTCP2_VERSION = "0.13.1"
-$NGTCP2_HASH = "6485e94a551642d119c17fcb2a8c4844ea6c9fd6da722920da718af9bcf6c714"
+$NGTCP2_VERSION = "0.14.0"
+$NGTCP2_HASH = "2dd414d07034ef6b7d0ca3055e39e28f4e661a2aa4e7e593d0b613ebaeeefd73"
 
-# openssl-${OPENSSL_QUIC_VERSION}+quic.tar.gz
-$OPENSSL_QUIC_VERSION = "3.0.8"
-$OPENSSL_QUIC_HASH = "fee9c341d77625ef4b0a5ae90c2609560a5f50a1b3dafec559cefd5e129cb329"
+# openssl-${QUICTLS_VERSION}+quic.tar.gz
+$QUICTLS_VERSION = "3.0.8"
+$QUICTLS_HASH = "fee9c341d77625ef4b0a5ae90c2609560a5f50a1b3dafec559cefd5e129cb329"
 
 
 # Filename
@@ -69,9 +69,9 @@ $NGHTTP3_FILE = "nghttp3-${NGHTTP3_VERSION}"
 $NGTCP2_URL = "https://github.com/ngtcp2/ngtcp2/releases/download/v${NGTCP2_VERSION}/ngtcp2-${NGTCP2_VERSION}.tar.xz"
 $NGTCP2_FILE = "ngtcp2-${NGTCP2_VERSION}"
 
-$OPENSSL_QUIC_URL = "https://github.com/quictls/openssl/archive/refs/heads/openssl-${OPENSSL_QUIC_VERSION}+quic.tar.gz"
-$OPENSSL_QUIC_FILE = "openssl-${OPENSSL_QUIC_VERSION}+quic"
-$OPENSSL_QUIC_DIR = "openssl-openssl-${OPENSSL_QUIC_VERSION}-quic"
+$QUICTLS_URL = "https://github.com/quictls/openssl/archive/refs/heads/openssl-${QUICTLS_VERSION}+quic.tar.gz"
+$QUICTLS_FILE = "openssl-${QUICTLS_VERSION}+quic"
+$QUICTLS_DIR = "openssl-openssl-${QUICTLS_VERSION}-quic"
 
 Function DumpLocal {
     $dumptext = $ZLIB_VERSION + $ZLIB_HASH + $ZLIB_FILENAME + $ZLIB_URL 
@@ -82,7 +82,7 @@ Function DumpLocal {
     + $CURL_HASH + $CURL_FILE + $CURL_URL + $CA_BUNDLE_URL + $ZSTD_URL + $ZSTD_FILE + $ZSTD_HASH
     + $NGHTTP3_HASH + $NGHTTP3_URL + $NGHTTP3_FILE
     + $NGTCP2_HASH + $NGTCP2_URL + $NGTCP2_FILE
-    + $OPENSSL_QUIC_HASH + $OPENSSL_QUIC_URL + $OPENSSL_QUIC_FILE + $OPENSSL_QUIC_DIR
+    + $QUICTLS_HASH + $QUICTLS_URL + $QUICTLS_FILE + $QUICTLS_DIR
     Write-Host $dumptext
 }
 

@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 13aff5f4b..09835d61a 100644
+index 0ddfce9..ca9746c 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -99,11 +99,11 @@ include_directories(${CURL_SOURCE_DIR}/include)
@@ -26,35 +26,7 @@ index 13aff5f4b..09835d61a 100644
  
  cmake_dependent_option(ENABLE_THREADED_RESOLVER "Set to ON to enable threaded DNS lookup"
          ON "NOT ENABLE_ARES"
-@@ -519,16 +519,17 @@ endif()
- 
- function(CheckQuicSupportInOpenSSL)
-   # Be sure that the OpenSSL library actually supports QUIC.
--  if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
--    cmake_push_check_state()
--    set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
--    set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
--    check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
--    cmake_pop_check_state()
--  endif()
--  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
--    message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
--  endif()
-+  message(STATUS "disable quic support check")
-+  # if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
-+  #   cmake_push_check_state()
-+  #   set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
-+  #   set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
-+  #   check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
-+  #   cmake_pop_check_state()
-+  # endif()
-+  # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
-+  #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL. Try setting -DOPENSSL_ROOT_DIR")
-+  # endif()
- endfunction()
- 
- option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
-@@ -726,17 +727,21 @@ if(ZLIB_FOUND)
+@@ -453,17 +453,21 @@ if(ZLIB_FOUND)
    list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
  endif()
  
@@ -87,8 +59,66 @@ index 13aff5f4b..09835d61a 100644
  
  option(CURL_ZSTD "Set to ON to enable building curl with zstd support." OFF)
  set(HAVE_ZSTD OFF)
+@@ -554,31 +558,32 @@ if(USE_NGHTTP2)
+ endif()
+ 
+ function(CheckQuicSupportInOpenSSL)
+-  # Be sure that the OpenSSL/wolfSSL library actually supports QUIC.
+-  if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    cmake_push_check_state()
+-    if(USE_WOLFSSL)
+-      set(CMAKE_REQUIRED_INCLUDES   "${WolfSSL_INCLUDE_DIRS}")
+-      set(CMAKE_REQUIRED_LIBRARIES  "${WolfSSL_LIBRARIES}")
+-      if(HAVE_LIBZ)
+-        list(APPEND CMAKE_REQUIRED_INCLUDES  "${ZLIB_INCLUDE_DIRS}")
+-        list(APPEND CMAKE_REQUIRED_LIBRARIES "${ZLIB_LIBRARIES}")
+-      endif()
+-      if(WIN32)
+-        list(APPEND CMAKE_REQUIRED_LIBRARIES "crypt32")
+-      endif()
+-      list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_UINTPTR_T)  # to pull in stdint.h (as of wolfSSL v5.5.4)
+-      check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    else()
+-      set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
+-      set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
+-      check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    endif()
+-    cmake_pop_check_state()
+-  endif()
+-  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL/wolfSSL. Try setting -DOPENSSL_ROOT_DIR")
+-  endif()
++  message(STATUS "disable quic support check")
++  # # Be sure that the OpenSSL/wolfSSL library actually supports QUIC.
++  # if(NOT DEFINED HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   cmake_push_check_state()
++  #   if(USE_WOLFSSL)
++  #     set(CMAKE_REQUIRED_INCLUDES   "${WolfSSL_INCLUDE_DIRS}")
++  #     set(CMAKE_REQUIRED_LIBRARIES  "${WolfSSL_LIBRARIES}")
++  #     if(HAVE_LIBZ)
++  #       list(APPEND CMAKE_REQUIRED_INCLUDES  "${ZLIB_INCLUDE_DIRS}")
++  #       list(APPEND CMAKE_REQUIRED_LIBRARIES "${ZLIB_LIBRARIES}")
++  #     endif()
++  #     if(WIN32)
++  #       list(APPEND CMAKE_REQUIRED_LIBRARIES "crypt32")
++  #     endif()
++  #     list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_UINTPTR_T)  # to pull in stdint.h (as of wolfSSL v5.5.4)
++  #     check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   else()
++  #     set(CMAKE_REQUIRED_INCLUDES   "${OPENSSL_INCLUDE_DIR}")
++  #     set(CMAKE_REQUIRED_LIBRARIES  "${OPENSSL_LIBRARIES}")
++  #     check_symbol_exists(SSL_CTX_set_quic_method "openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   endif()
++  #   cmake_pop_check_state()
++  # endif()
++  # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/BoringSSL/wolfSSL. Try setting -DOPENSSL_ROOT_DIR")
++  # endif()
+ endfunction()
+ 
+ option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
 diff --git a/src/curl.rc b/src/curl.rc
-index b0e328798..500ba5bd7 100644
+index 11d5284..272400d 100644
 --- a/src/curl.rc
 +++ b/src/curl.rc
 @@ -26,6 +26,8 @@

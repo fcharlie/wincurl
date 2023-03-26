@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(zlib C)
 
-set(VERSION "1.2.12")
+set(VERSION "1.2.13")
 
 if(MSVC)
   set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")

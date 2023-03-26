@@ -1,10 +1,10 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6232ec43..42c9ae47 100644
+index 80843c3..353c071 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -75,6 +75,15 @@ endif()
- 
- include(GNUInstallDirs)
+@@ -82,6 +82,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+     "None" "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+ endif()
  
 +if(MSVC)
 +  set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -15,17 +15,17 @@ index 6232ec43..42c9ae47 100644
 +  set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -c65001")
 +endif(MSVC)
 +
- include(CMakeOptions.txt)
+ include(GNUInstallDirs)
  
- # Do not disable assertions based on CMAKE_BUILD_TYPE.
+ include(CMakeOptions.txt)
 diff --git a/lib/ngtcp2_ringbuf.c b/lib/ngtcp2_ringbuf.c
-index a6b3f73e..f1c6de8a 100644
+index 4ad67ad..ce4cf81 100644
 --- a/lib/ngtcp2_ringbuf.c
 +++ b/lib/ngtcp2_ringbuf.c
-@@ -32,7 +32,7 @@
- #include "ngtcp2_macro.h"
+@@ -33,7 +33,7 @@
  
- #if defined(_MSC_VER) && defined(_M_ARM64)
+ #if defined(_MSC_VER) && !defined(__clang__) &&                                \
+     (defined(_M_ARM) || defined(_M_ARM64))
 -unsigned int __popcnt(unsigned int x) {
 +static __forceinline unsigned int __popcnt(unsigned int x) {
    unsigned int c = 0;
