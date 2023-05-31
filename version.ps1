@@ -9,8 +9,8 @@ $OPENSSL_HASH = "aaa925ad9828745c4cad9d9efeb273deca820f2cdcf2c3ac7d7c1212b7c497b
 $BROTLI_VERSION = "1.0.9"
 $BROTLI_HASH = "f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46"
 
-$LIBSSH2_VERSION = "1.10.0"
-$LIBSSH2_HASH = "2d64e90f3ded394b91d3a2e774ca203a4179f69aebee03003e5a6fa621e41d51"
+$LIBSSH2_VERSION = "1.11.0"
+$LIBSSH2_HASH = "a488a22625296342ddae862de1d59633e6d446eff8417398e06674a49be3d7c2"
 
 # nghttp2-${NGHTTP2_VERSION}.tar.xz
 $NGHTTP2_VERSION = "1.53.0"
@@ -20,8 +20,8 @@ $ZSTD_VERSION = "1.5.5"
 $ZSTD_HASH = "9c4396cc829cfae319a6e2615202e82aad41372073482fce286fac78646d3ee4"
 
 # curl-${CURL_VERSION}.tar.xz
-$CURL_VERSION = "8.1.1"
-$CURL_HASH = "08a948e061929645597c1ef7194e07b308b22084ff03fa7400b465e6c05149e5"
+$CURL_VERSION = "8.1.2"
+$CURL_HASH = "31b1118eb8bfd43cd95d9a3f146f814ff874f6ed3999b29d94f4d1e7dbac5ef6"
 
 
 # nghttp3-${NGHTTP3_VERSION}.tar.xz
@@ -50,7 +50,7 @@ $BROTLI_FILE = "brotli-${BROTLI_VERSION}"
 $NGHTTP2_URL = "https://github.com/nghttp2/nghttp2/releases/download/v${NGHTTP2_VERSION}/nghttp2-${NGHTTP2_VERSION}.tar.xz"
 $NGHTTP2_FILE = "nghttp2-${NGHTTP2_VERSION}"
 
-$LIBSSH2_URL = "https://www.libssh2.org/download/libssh2-${LIBSSH2_VERSION}.tar.gz"
+$LIBSSH2_URL = "https://www.libssh2.org/download/libssh2-${LIBSSH2_VERSION}.tar.xz"
 $LIBSSH2_FILE = "libssh2-${LIBSSH2_VERSION}"
 
 $ZSTD_URL = "https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz"
