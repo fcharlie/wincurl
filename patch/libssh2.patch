@@ -1,27 +1,11 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index e6c95c8..1db4187 100644
+index 1cdc524..b0d4125 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -33,7 +33,7 @@
- # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- # OF SUCH DAMAGE.
+@@ -53,11 +53,22 @@ project(libssh2 C)
  
--cmake_minimum_required(VERSION 2.8.11)
-+cmake_minimum_required(VERSION 3.20)
+ set(CMAKE_UNITY_BUILD_BATCH_SIZE 32)
  
- set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
- 
-@@ -41,13 +41,16 @@ project(libssh2 C)
- set(PROJECT_URL "https://www.libssh2.org/")
- set(PROJECT_DESCRIPTION "The SSH library")
- 
--if (CMAKE_VERSION VERSION_LESS "3.1")
--  if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
--    set (CMAKE_C_FLAGS "--std=gnu90 ${CMAKE_C_FLAGS}")
--  endif()
--else()
--  set (CMAKE_C_STANDARD 90)
--endif()
 +if(MSVC)
 +  set(CMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 +  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS=1 -utf-8 -W3 -DUNICODE=1 -D_UNICODE=1 -wd26812")
@@ -32,24 +16,24 @@ index e6c95c8..1db4187 100644
 +endif(MSVC)
 +
 +set(CMAKE_C_STANDARD 17)
++
+ option(BUILD_STATIC_LIBS "Build Static Libraries" ON)
+ add_feature_info("Static library" BUILD_STATIC_LIBS
+   "creating libssh2 static library")
  
- option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+-option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
++option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+ add_feature_info("Shared library" BUILD_SHARED_LIBS
+   "creating libssh2 shared library (.so/.dll)")
  
-diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index eee1a80..b60634c 100644
---- a/src/CMakeLists.txt
-+++ b/src/CMakeLists.txt
-@@ -365,12 +365,7 @@ if(MSVC)
-   set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DEBUG")
+@@ -110,8 +121,8 @@ else()
+   endif()
  endif()
  
--if(CMAKE_VERSION VERSION_LESS "2.8.12")
--  # Fall back to over-linking dependencies
--  target_link_libraries(libssh2 ${LIBRARIES})
--else()
--  target_link_libraries(libssh2 PRIVATE ${LIBRARIES})
--endif()
-+target_link_libraries(libssh2 PRIVATE ${LIBRARIES})
+-option(BUILD_EXAMPLES "Build libssh2 examples" ON)
+-option(BUILD_TESTING "Build libssh2 test suite" ON)
++option(BUILD_EXAMPLES "Build libssh2 examples" OFF)
++option(BUILD_TESTING "Build libssh2 test suite" OFF)
  
- ## Installation
- 
+ if(NOT BUILD_STATIC_LIBS AND NOT BUILD_SHARED_LIBS)
+   set(BUILD_STATIC_LIBS ON)
