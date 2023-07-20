@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a0fe76c..eb8a833 100644
+index babc50086..16f3d6ae9 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -100,11 +100,11 @@ include_directories(${CURL_SOURCE_DIR}/include)
+@@ -102,11 +102,11 @@ set(CMAKE_UNITY_BUILD_BATCH_SIZE 0)
  option(CURL_WERROR "Turn compiler warnings into errors" OFF)
  option(PICKY_COMPILER "Enable picky compiler options" ON)
  option(BUILD_CURL_EXE "Set to ON to build curl executable." ON)
@@ -17,7 +17,7 @@ index a0fe76c..eb8a833 100644
    set(CURL_TARGET_WINDOWS_VERSION "" CACHE STRING "Minimum target Windows version as hex string")
    if(CURL_TARGET_WINDOWS_VERSION)
      add_definitions(-D_WIN32_WINNT=${CURL_TARGET_WINDOWS_VERSION})
-@@ -118,7 +118,7 @@ if(WIN32)
+@@ -120,7 +120,7 @@ if(WIN32)
      endif()
    endif()
  endif()
@@ -26,17 +26,18 @@ index a0fe76c..eb8a833 100644
  
  cmake_dependent_option(ENABLE_THREADED_RESOLVER "Set to ON to enable threaded DNS lookup"
          ON "NOT ENABLE_ARES"
-@@ -531,6 +531,9 @@ if(CURL_BROTLI)
-     list(APPEND CMAKE_REQUIRED_INCLUDES ${BROTLI_INCLUDE_DIRS})
+@@ -534,6 +534,10 @@ if(CURL_BROTLI)
    endif()
  endif()
+ 
 +# Force enable brotli
 +set(HAVE_BROTLI ON)
 +list(APPEND CURL_LIBS brotli)
- 
++
  option(CURL_ZSTD "Set to ON to enable building curl with zstd support." OFF)
  set(HAVE_ZSTD OFF)
-@@ -589,9 +592,10 @@ function(CheckQuicSupportInOpenSSL)
+ if(CURL_ZSTD)
+@@ -591,9 +595,10 @@ function(CheckQuicSupportInOpenSSL)
      endif()
      cmake_pop_check_state()
    endif()
@@ -51,7 +52,7 @@ index a0fe76c..eb8a833 100644
  
  option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
 diff --git a/src/curl.rc b/src/curl.rc
-index 11d5284..272400d 100644
+index 11d528429..272400ddb 100644
 --- a/src/curl.rc
 +++ b/src/curl.rc
 @@ -26,6 +26,8 @@
