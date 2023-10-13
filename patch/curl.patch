@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index bc42c6a62..f51dee06f 100644
+index 1b19c681d..9591a9227 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -642,9 +642,9 @@ if(USE_NGTCP2)
+@@ -682,9 +682,9 @@ if(USE_NGTCP2)
          openssl_check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
        endif()
      endif()
@@ -12,9 +12,9 @@ index bc42c6a62..f51dee06f 100644
 +    # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
 +    #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/LibreSSL/BoringSSL/wolfSSL. Try setting -DOPENSSL_ROOT_DIR")
 +    # endif()
- 
    elseif(USE_GNUTLS)
-     # TODO add GnuTLS support as vtls library.
+     find_package(NGTCP2 REQUIRED GnuTLS)
+   else()
 diff --git a/src/curl.rc b/src/curl.rc
 index 11d528429..272400ddb 100644
 --- a/src/curl.rc
