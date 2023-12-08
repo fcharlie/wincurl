@@ -1,22 +1,22 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1b19c681d..9591a9227 100644
+index 4042f001b..2e49740b5 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -682,9 +682,9 @@ if(USE_NGTCP2)
-         openssl_check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
-       endif()
+@@ -657,9 +657,9 @@ macro(openssl_check_quic)
+       openssl_check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
      endif()
--    if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
--      message(FATAL_ERROR "QUIC support is missing in OpenSSL/LibreSSL/BoringSSL/wolfSSL. Try setting -DOPENSSL_ROOT_DIR")
--    endif()
-+    # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
-+    #   message(FATAL_ERROR "QUIC support is missing in OpenSSL/LibreSSL/BoringSSL/wolfSSL. Try setting -DOPENSSL_ROOT_DIR")
-+    # endif()
-   elseif(USE_GNUTLS)
-     find_package(NGTCP2 REQUIRED GnuTLS)
-   else()
+   endif()
+-  if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
+-    message(FATAL_ERROR "QUIC support is missing in OpenSSL fork. Try setting -DOPENSSL_ROOT_DIR")
+-  endif()
++  # if(NOT HAVE_SSL_CTX_SET_QUIC_METHOD)
++  #   message(FATAL_ERROR "QUIC support is missing in OpenSSL fork. Try setting -DOPENSSL_ROOT_DIR")
++  # endif()
+ endmacro()
+ 
+ if(USE_OPENSSL OR USE_WOLFSSL)
 diff --git a/src/curl.rc b/src/curl.rc
-index 11d528429..272400ddb 100644
+index 6fcaf353e..24f33afcb 100644
 --- a/src/curl.rc
 +++ b/src/curl.rc
 @@ -26,6 +26,8 @@
