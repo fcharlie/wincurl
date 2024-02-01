@@ -29,7 +29,7 @@ jobs:
           - target: wincurl-arm64
             short_target: arm64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: compile-wincurl
@@ -50,7 +50,7 @@ jobs:
           $env:WINCURL_ASSET_NAME="$baseName"
           $hashtext=$obj.Algorithm+":"+$obj.Hash.ToLower()
           Write-Host "$env:WINCURL_ASSET_NAME`n$hashtext"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
           path: destination/*
