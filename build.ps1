@@ -333,13 +333,13 @@ if ($ec -ne 0) {
 }
 
 ##################################################### OpenSSL(quic)
-Write-Host -ForegroundColor Yellow "Build OpenSSL(QUIC) $QUICTLS_VERSION"
+Write-Host -ForegroundColor Yellow "Build OpenSSL $QUICTLS_VERSION"
 
-if (!(DecompressTar -URL $QUICTLS_URL -File "$QUICTLS_FILE.tar.gz" -Hash $QUICTLS_HASH)) {
+if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
 
-$OPENSSL_SOURCE_DIR = Join-Path $WD $QUICTLS_DIR
+$OPENSSL_SOURCE_DIR = Join-Path $WD $OPENSSL_FILE
 
 # Update env
 $env:INCLUDE = "$MID_INSTALL_DIR/include;$env:INCLUDE"
@@ -351,14 +351,6 @@ if ($vsArch -eq "amd64_x86") {
 }
 elseif ($vsArch -eq "amd64_arm64") {
     $OPENSSL_ARCH = "VC-WIN64-ARM"
-}
-
-if ($QUICTLS_VERSION -eq "3.0.8" -and $Target -eq "arm64") {
-    $OPENSSL_ARM64_PATCH = Join-Path $PSScriptRoot "patch/umul128-arm64.patch"
-    $ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$OPENSSL_ARM64_PATCH`"" -WD $OPENSSL_SOURCE_DIR
-    if ($ec -ne 0) {
-        Write-Host -ForegroundColor Red "Apply $OPENSSL_ARM64_PATCH failed"
-    }
 }
 
 # perl Configure no-shared no-ssl3 enable-capieng -utf-8
