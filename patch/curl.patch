@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1b5ea67..1cd112a 100644
+index 656aa7c74..f3356e24a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -641,9 +641,9 @@ macro(openssl_check_quic)
+@@ -636,9 +636,9 @@ macro(openssl_check_quic)
        openssl_check_symbol_exists(wolfSSL_set_quic_method "wolfssl/options.h;wolfssl/openssl/ssl.h" HAVE_SSL_CTX_SET_QUIC_METHOD)
      endif()
    endif()
@@ -15,7 +15,7 @@ index 1b5ea67..1cd112a 100644
  endmacro()
  
  if(USE_OPENSSL OR USE_WOLFSSL)
-@@ -664,20 +664,20 @@ endif()
+@@ -659,28 +659,24 @@ endif()
  
  option(USE_NGTCP2 "Use ngtcp2 and nghttp3 libraries for HTTP/3 support" OFF)
  if(USE_NGTCP2)
@@ -48,10 +48,21 @@ index 1b5ea67..1cd112a 100644
 +  #   message(FATAL_ERROR "ngtcp2 requires OpenSSL, wolfSSL or GnuTLS")
 +  # endif()
    set(USE_NGTCP2 ON)
-   include_directories(${NGTCP2_INCLUDE_DIRS})
-   list(APPEND CURL_LIBS ${NGTCP2_LIBRARIES})
+-  include_directories(${NGTCP2_INCLUDE_DIRS})
+-  list(APPEND CURL_LIBS ${NGTCP2_LIBRARIES})
+-
+-  find_package(NGHTTP3 REQUIRED)
+-  set(USE_NGHTTP3 ON)
+-  include_directories(${NGHTTP3_INCLUDE_DIRS})
+-  list(APPEND CURL_LIBS ${NGHTTP3_LIBRARIES})
++  list(APPEND CURL_LIBS "ngtcp2")
++  list(APPEND CURL_LIBS "ngtcp2_crypto_quictls.lib")
++  list(APPEND CURL_LIBS "nghttp3.lib")
+ endif()
+ 
+ option(USE_QUICHE "Use quiche library for HTTP/3 support" OFF)
 diff --git a/src/curl.rc b/src/curl.rc
-index 6fcaf35..24f33af 100644
+index 6fcaf353e..24f33afcb 100644
 --- a/src/curl.rc
 +++ b/src/curl.rc
 @@ -26,6 +26,8 @@

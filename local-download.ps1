@@ -90,3 +90,7 @@ if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH
 if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
+
+if (!(DecompressTar -URL "https://mirror.ghproxy.com/$QUICTLS_URL" -File "$QUICTLS_FILE.tar.gz" -Hash $QUICTLS_HASH)) {
+    exit 1
+}

@@ -332,14 +332,14 @@ if ($ec -ne 0) {
     exit 1
 }
 
-##################################################### OpenSSL
-Write-Host -ForegroundColor Yellow "Build OpenSSL $OPENSSL_VERSION"
+##################################################### OpenSSL(quic)
+Write-Host -ForegroundColor Yellow "Build OpenSSL(QUIC) $QUICTLS_VERSION"
 
-if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL $QUICTLS_URL -File "$QUICTLS_FILE.tar.gz" -Hash $QUICTLS_HASH)) {
     exit 1
 }
 
-$OPENSSL_SOURCE_DIR = Join-Path $WD $OPENSSL_FILE
+$OPENSSL_SOURCE_DIR = Join-Path $WD $QUICTLS_DIR
 
 # Update env
 $env:INCLUDE = "$MID_INSTALL_DIR/include;$env:INCLUDE"
@@ -430,7 +430,7 @@ if ($ec -ne 0) {
 }
 
 $ngtcp2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DENABLE_LIB_ONLY=ON -DENABLE_STATIC_CRT=ON"
-$ngtcp2_options = "${ngtcp2_options} -DENABLE_OPENSSL=ON -DHAVE_SSL_IS_QUIC=ON"
+$ngtcp2_options = "${ngtcp2_options} -DENABLE_OPENSSL=ON"
 $ngtcp2_options = "${ngtcp2_options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`" `"-DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
 $ngtcp2_options = "${ngtcp2_options} `"-DLIBNGHTTP3_LIBRARY=${MID_INSTALL_DIR}/lib`" `"-DLIBNGHTTP3_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
 $ngtcp2_options = "${ngtcp2_options} -DLIBEV_LIBRARY="
@@ -471,7 +471,7 @@ if (!(MakeDirs -Dir $NGHTTP2_BUILD_DIR)) {
     exit 1
 }
 
-$nghttp2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DENABLE_LIB_ONLY=ON -DENABLE_ASIO_LIB=OFF -DENABLE_STATIC_CRT=ON"
+$nghttp2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DENABLE_LIB_ONLY=ON -DENABLE_ASIO_LIB=OFF -DENABLE_STATIC_CRT=ON"
 $nghttp2_options = "${nghttp2_options} -DENABLE_OPENSSL=ON -DHAVE_SSL_IS_QUIC=ON"
 $nghttp2_options = "${nghttp2_options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`" `"-DOPENSSL_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
 $nghttp2_options = "${nghttp2_options} `"-DCMAKE_INSTALL_PREFIX=$MID_INSTALL_DIR`" .." 
@@ -567,11 +567,15 @@ if ($ec -ne 0) {
 
 $CURL_CFLAGS = "-DHAS_ALPN"
 $options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABLE_UNICODE=ON -DBUILD_CURL_EXE=ON -DCURL_STATIC_CRT=ON -DCMAKE_RC_FLAGS=-c1252 -DCURL_TARGET_WINDOWS_VERSION=0x0A00 -DCURL_LTO=ON"
-$options = "${options} -DCURL_USE_SCHANNEL=ON"
+$options = "${options} -DBUILD_LIBCURL_DOCS=OFF -DENABLE_CURL_MANUAL=OFF"
 # zlib
 $options = "${options} -DUSE_ZLIB=ON"
 $options = "${options} `"-DZLIB_LIBRARY=${MID_INSTALL_DIR}/lib/zlib.lib`""
 $options = "${options} `"-DZLIB_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
+# zstd
+$options = "${options} -DCURL_ZSTD=ON"
+$options = "${options} `"-DZstd_LIBRARY=${MID_INSTALL_DIR}/lib/zstd.lib`""
+$options = "${options} `"-DZstd_INCLUDE_DIR=${MID_INSTALL_DIR}/include`""
 # openssl-quic
 $options = "${options} -DCURL_USE_OPENSSL=ON"
 $options = "${options} `"-DOPENSSL_ROOT_DIR=${MID_INSTALL_DIR}`""

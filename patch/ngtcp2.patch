@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 2575af7b..782c2bae 100644
+index 813884a..f8a3801 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -82,6 +82,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -16,58 +16,21 @@ index 2575af7b..782c2bae 100644
 +endif(MSVC)
 +
  include(GNUInstallDirs)
+ include(CMakeDependentOption)
  
- include(CMakeOptions.txt)
-@@ -134,7 +143,7 @@ if(HAVE_CUNIT)
-   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+@@ -150,10 +159,11 @@ if(ENABLE_OPENSSL AND OPENSSL_FOUND)
+   if(WIN32)
+     set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}" "ws2_32" "bcrypt")
+   endif()
+-  check_symbol_exists(SSL_provide_quic_data "openssl/ssl.h" HAVE_SSL_PROVIDE_QUIC_DATA)
+-  if(NOT HAVE_SSL_PROVIDE_QUIC_DATA)
+-    message(WARNING "Disabling OpenSSL due to lack of QUIC support in ${OPENSSL_LIBRARIES}")
+-  endif()
++  # check_symbol_exists(SSL_provide_quic_data "openssl/ssl.h" HAVE_SSL_PROVIDE_QUIC_DATA)
++  # if(NOT HAVE_SSL_PROVIDE_QUIC_DATA)
++  #   message(WARNING "Disabling OpenSSL due to lack of QUIC support in ${OPENSSL_LIBRARIES}")
++  # endif()
++  set(HAVE_SSL_PROVIDE_QUIC_DATA ON)
+   cmake_pop_check_state()
  endif()
- 
--# OpenSSL (required for libngtcp2_crypto_openssl,
-+# OpenSSL (required for libngtcp2_crypto_quictls,
- # libngtcp2_crypto_picotls and examples)
- include(CheckSymbolExists)
- if(ENABLE_OPENSSL AND OPENSSL_FOUND)
-diff --git a/crypto/includes/CMakeLists.txt b/crypto/includes/CMakeLists.txt
-index 10f91222..477c10d1 100644
---- a/crypto/includes/CMakeLists.txt
-+++ b/crypto/includes/CMakeLists.txt
-@@ -27,7 +27,7 @@ install(FILES
- 
- if(HAVE_OPENSSL)
-   install(FILES
--      ngtcp2/ngtcp2_crypto_openssl.h
-+      ngtcp2/ngtcp2_crypto_quictls.h
-       DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ngtcp2")
- endif()
- 
-diff --git a/crypto/shared.h b/crypto/shared.h
-index 8c7c88d0..d69fd212 100644
---- a/crypto/shared.h
-+++ b/crypto/shared.h
-@@ -100,7 +100,7 @@ ngtcp2_crypto_ctx *ngtcp2_crypto_ctx_initial(ngtcp2_crypto_ctx *ctx);
-  * `ngtcp2_crypto_aead_init` initializes |aead| with the provided
-  * |aead_native_handle| which is an underlying AEAD object.
-  *
-- * If libngtcp2_crypto_openssl is linked, |aead_native_handle| must be
-+ * If libngtcp2_crypto_quictls is linked, |aead_native_handle| must be
-  * a pointer to EVP_CIPHER.
-  *
-  * If libngtcp2_crypto_gnutls is linked, |aead_native_handle| must be
-@@ -214,7 +214,7 @@ int ngtcp2_crypto_update_traffic_secret(uint8_t *dest, uint32_t version,
-  * pointed by |buf| of length |len|, to the native handle |tls|.
-  *
-  * |tls| points to a implementation dependent TLS session object.  If
-- * libngtcp2_crypto_openssl is linked, |tls| must be a pointer to SSL
-+ * libngtcp2_crypto_quictls is linked, |tls| must be a pointer to SSL
-  * object.
-  *
-  * This function returns 0 if it succeeds, or -1.
-@@ -230,7 +230,7 @@ int ngtcp2_crypto_set_local_transport_params(void *tls, const uint8_t *buf,
-  * `ngtcp2_conn_set_remote_transport_params`.
-  *
-  * |tls| points to a implementation dependent TLS session object.  If
-- * libngtcp2_crypto_openssl is linked, |tls| must be a pointer to SSL
-+ * libngtcp2_crypto_quictls is linked, |tls| must be a pointer to SSL
-  * object.
-  *
-  * This function returns 0 if it succeeds, or -1.
+ if(ENABLE_OPENSSL AND HAVE_SSL_PROVIDE_QUIC_DATA)
