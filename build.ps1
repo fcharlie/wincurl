@@ -332,8 +332,8 @@ if ($ec -ne 0) {
     exit 1
 }
 
-##################################################### OpenSSL(quic)
-Write-Host -ForegroundColor Yellow "Build OpenSSL $QUICTLS_VERSION"
+##################################################### OpenSSL
+Write-Host -ForegroundColor Yellow "Build OpenSSL $OPENSSL_VERSION"
 
 if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1

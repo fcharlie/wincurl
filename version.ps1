@@ -72,6 +72,8 @@ $QUICTLS_URL = "https://github.com/quictls/openssl/archive/refs/heads/openssl-${
 $QUICTLS_FILE = "openssl-${QUICTLS_VERSION}+quic"
 $QUICTLS_DIR = "openssl-openssl-${QUICTLS_VERSION}-quic"
 
+Write-Host "zstd: $ZSTD_URL"
+
 Function DumpLocal {
     $dumptext = $ZLIB_VERSION + $ZLIB_HASH + $ZLIB_FILENAME + $ZLIB_URL 
     + $OPENSSL_HASH + $OPENSSL_URL + $OPENSSL_FILE
