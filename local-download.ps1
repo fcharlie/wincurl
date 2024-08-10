@@ -62,7 +62,7 @@ if (!(DecompressTar -URL "https://mirror.ghproxy.com/$BROTLI_URL" -File "$BROTLI
     exit 1
 }
 
-if (!(DecompressTar -URL $ZLIB_URL -File "$ZLIB_FILENAME.tar.xz" -Hash $ZLIB_HASH)) {
+if (!(DecompressTar -URL $ZLIBNG_URL -File "$ZLIBNG_FILE.tar.xz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
 

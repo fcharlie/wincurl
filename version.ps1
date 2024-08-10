@@ -3,6 +3,9 @@
 $ZLIB_VERSION = "1.3.1"
 $ZLIB_HASH = "38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32"
 
+$ZLIBNG_VERSION = "2.2.1"
+$ZLIBNG_HASH = "ec6a76169d4214e2e8b737e0850ba4acb806c69eeace6240ed4481b9f5c57cdf"
+
 $OPENSSL_VERSION = "3.3.1"
 $OPENSSL_HASH = "777cd596284c883375a2a7a11bf5d2786fc5413255efab20c50d6ffe6d020b7e"
 
@@ -40,7 +43,10 @@ $QUICTLS_HASH = "a9d261a0a85d141052534aac3f67872093e37c004255eb4288df52f3beaf6e6
 $ZLIB_FILENAME = "zlib-${ZLIB_VERSION}"
 $ZLIB_URL = "https://zlib.net/zlib-${ZLIB_VERSION}.tar.xz"
 
-$OPENSSL_URL = "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
+$ZLIBNG_URL = "https://github.com/zlib-ng/zlib-ng/archive/refs/tags/${ZLIBNG_VERSION}.tar.gz"
+$ZLIBNG_FILE = "zlib-ng-${ZLIBNG_VERSION}"
+
+$OPENSSL_URL = "https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz"
 $OPENSSL_FILE = "openssl-${OPENSSL_VERSION}"
 
 $BROTLI_URL = "https://github.com/google/brotli/archive/v${BROTLI_VERSION}.tar.gz"
@@ -61,7 +67,6 @@ $CURL_FILE = "curl-${CURL_VERSION}"
 #curl-ca-bundle
 $CA_BUNDLE_URL = "https://curl.se/ca/cacert.pem"
 
-
 $NGHTTP3_URL = "https://github.com/ngtcp2/nghttp3/releases/download/v${NGHTTP3_VERSION}/nghttp3-${NGHTTP3_VERSION}.tar.xz"
 $NGHTTP3_FILE = "nghttp3-${NGHTTP3_VERSION}"
 
@@ -72,10 +77,13 @@ $QUICTLS_URL = "https://github.com/quictls/openssl/archive/refs/heads/openssl-${
 $QUICTLS_FILE = "openssl-${QUICTLS_VERSION}+quic"
 $QUICTLS_DIR = "openssl-openssl-${QUICTLS_VERSION}-quic"
 
+
+
 Write-Host "zstd: $ZSTD_URL"
 
 Function DumpLocal {
     $dumptext = $ZLIB_VERSION + $ZLIB_HASH + $ZLIB_FILENAME + $ZLIB_URL 
+    + $ZLIBNG_VERSION + $ZLIBNG_HASH + $ZLIBNG_URL + $ZLIBNG_FILE
     + $OPENSSL_HASH + $OPENSSL_URL + $OPENSSL_FILE
     + $BROTLI_HASH + $BROTLI_URL + $BROTLI_FILE 
     + $NGHTTP2_HASH + $NGHTTP2_URL + $NGHTTP2_FILE 
