@@ -62,11 +62,11 @@ if (!(DecompressTar -URL "https://mirror.ghproxy.com/$BROTLI_URL" -File "$BROTLI
     exit 1
 }
 
-if (!(DecompressTar -URL $ZLIBNG_URL -File "$ZLIBNG_FILE.tar.xz" -Hash $ZLIBNG_HASH)) {
+if (!(DecompressTar -URL "https://mirror.ghproxy.com/$ZLIBNG_URL" -File "$ZLIBNG_FILE.tar.xz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL "https://mirror.ghproxy.com/$OPENSSL_URL" -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
 
@@ -83,7 +83,7 @@ if (!(DecompressTar -URL "https://mirror.ghproxy.com/$NGHTTP2_URL" -File "$NGHTT
     exit 1
 }
 
-if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
+if (!(DecompressTar -URL "https://mirror.ghproxy.com/$LIBSSH2_URL" -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
     exit 1
 }
 
@@ -91,6 +91,3 @@ if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.xz" -Hash $CURL_HASH)) 
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$QUICTLS_URL" -File "$QUICTLS_FILE.tar.gz" -Hash $QUICTLS_HASH)) {
-    exit 1
-}

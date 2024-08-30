@@ -1,0 +1,13 @@
+diff --git a/lib/nghttp3_ringbuf.c b/lib/nghttp3_ringbuf.c
+index 51ed596..ff2e34b 100644
+--- a/lib/nghttp3_ringbuf.c
++++ b/lib/nghttp3_ringbuf.c
+@@ -34,7 +34,7 @@
+ #include "nghttp3_macro.h"
+ 
+ #if defined(_MSC_VER) && !defined(__clang__) &&                                \
+-    (defined(_M_ARM) || defined(_M_ARM64))
++    (defined(_M_ARM) || (defined(_M_ARM64) && _MSC_VER < 1941))
+ unsigned int __popcnt(unsigned int x) {
+   unsigned int c = 0;
+   for (; x; ++c) {
