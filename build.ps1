@@ -562,6 +562,15 @@ if (!(MakeDirs -Dir $CURL_BUILD_DIR)) {
     exit 1
 }
 
+# download curl-ca-bundle.crt
+
+$CA_BUNDLE = Join-Path $CURL_SOURCE_DIR "curl-ca-bundle.crt"
+
+if (!(WinGet -URL $CA_BUNDLE_URL -O $CA_BUNDLE)) {
+    Write-Host -ForegroundColor Red "download curl-ca-bundle.crt  error"
+}
+
+
 # copy icon to path
 Copy-Item $CURL_ICON_FILE -Destination "$CURL_SOURCE_DIR/src"-Force -ErrorAction SilentlyContinue
 
@@ -591,7 +600,7 @@ $options = "${options} -DUSE_NGHTTP3=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP3_STATICLIB"
 
 $options = "${options} -DCURL_USE_OPENSSL=ON -DUSE_OPENSSL_QUIC=ON"
-
+$options = "${options} `"-DCURL_CA_EMBED=$CA_BUNDLE`""
 $options = "${options} `"-DCMAKE_C_FLAGS=${CURL_CFLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$CURL_BUILD_ROOT`" `"-DCMAKE_PREFIX_PATH=${CLEAN_ROOT}`"  .."
 
 $ec = Exec -FilePath $cmakeexe -Argv $options -WD $CURL_BUILD_DIR
@@ -610,14 +619,6 @@ $ec = Exec -FilePath $Ninjaexe -Argv "install" -WD $CURL_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "curl: install error"
     exit 1
-}
-
-# download curl-ca-bundle.crt
-
-$CA_BUNDLE = Join-Path $CURL_BUILD_ROOT "bin/curl-ca-bundle.crt"
-
-if (!(WinGet -URL $CA_BUNDLE_URL -O $CA_BUNDLE)) {
-    Write-Host -ForegroundColor Red "download curl-ca-bundle.crt  error"
 }
 
 Write-Host -ForegroundColor Green "curl: build completed"
