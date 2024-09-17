@@ -317,7 +317,7 @@ if (!(MakeDirs -Dir $ZLIBNG_BUILD_DIR)) {
 }
 
 $zlibng_options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$CLEAN_ROOT`""
-$zlibng_options = "${zlibng_options} -DBUILD_SHARED_LIBS=OFF -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF .."
+$zlibng_options = "${zlibng_options} -DBUILD_SHARED_LIBS=OFF -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -WITH_GZFILEOP=OFF .."
 
 $ec = Exec -FilePath $cmakeexe -Argv $zlibng_options -WD $ZLIBNG_BUILD_DIR
 if ($ec -ne 0) {
