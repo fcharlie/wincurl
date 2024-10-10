@@ -390,13 +390,6 @@ if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP
 $NGHTTP3_SOURCE_DIR = Join-Path $WD $NGHTTP3_FILE
 $NGHTTP3_BUILD_DIR = Join-Path $NGHTTP3_SOURCE_DIR "build"
 
-# FIXME when nghttp3 new release
-$NGHTTP3_PATCH = Join-Path $PSScriptRoot "patch/nghttp3.patch"
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$NGHTTP3_PATCH`"" -WD $NGHTTP3_SOURCE_DIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $CURL_PATCH failed"
-}
-
 if (!(MakeDirs -Dir $NGHTTP3_BUILD_DIR)) {
     exit 1
 }
