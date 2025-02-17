@@ -515,11 +515,11 @@ if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "Apply $LIBSSH2_PATCHH failed"
 }
 
-$LIBSSH2_CLAGS = "-DHAVE_EVP_AES_128_CTR=1 -DOPENSSL_SUPPRESS_DEPRECATED"
+$LIBSSH2_CFLAGS = "-DHAVE_EVP_AES_128_CTR=1"
 $libssh2_options = "-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_ZLIB_COMPRESSION=ON"
 $libssh2_options = "${libssh2_options} -DCRYPTO_BACKEND=OpenSSL"
 $libssh2_options = "${libssh2_options} -DENABLE_ZLIB_COMPRESSION=ON"
-$libssh2_options = "${libssh2_options} `"-DCMAKE_C_FLAGS=${LIBSSH2_CLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$CLEAN_ROOT`" `"-DCMAKE_PREFIX_PATH=${CLEAN_ROOT}`"  .. " 
+$libssh2_options = "${libssh2_options} `"-DCMAKE_C_FLAGS=${LIBSSH2_CFLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$CLEAN_ROOT`" `"-DCMAKE_PREFIX_PATH=${CLEAN_ROOT}`"  .. " 
 
 $ec = Exec -FilePath $cmakeexe -Argv $libssh2_options -WD $LIBSSH2_BUILD_DIR
 if ($ec -ne 0) {
