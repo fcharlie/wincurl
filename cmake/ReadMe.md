@@ -1,1 +1,0 @@
-# wincurl other cmakelists.txt

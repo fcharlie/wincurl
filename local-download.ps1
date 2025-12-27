@@ -54,36 +54,36 @@ Write-Host "download root in $WD"
 . "$PSScriptRoot/version.ps1"
 
 Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$ZSTD_URL" -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$ZSTD_URL" -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$BROTLI_URL" -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$BROTLI_URL" -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$ZLIBNG_URL" -File "$ZLIBNG_FILE.tar.xz" -Hash $ZLIBNG_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$ZLIBNG_URL" -File "$ZLIBNG_FILE.tar.gz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$OPENSSL_URL" -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$OPENSSL_URL" -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$NGHTTP3_URL" -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP3_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP3_URL" -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$NGTCP2_URL" -File "$NGTCP2_FILE.tar.xz" -Hash $NGTCP2_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$NGTCP2_URL" -File "$NGTCP2_FILE.tar.xz" -Hash $NGTCP2_HASH)) {
     exit 1
 }
 
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$NGHTTP2_URL" -File "$NGHTTP2_FILE.tar.xz" -Hash $NGHTTP2_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP2_URL" -File "$NGHTTP2_FILE.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://mirror.ghproxy.com/$LIBSSH2_URL" -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
+if (!(DecompressTar -URL "$LIBSSH2_URL" -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
     exit 1
 }
 
