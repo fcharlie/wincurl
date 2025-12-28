@@ -54,23 +54,23 @@ Write-Host "download root in $WD"
 . "$PSScriptRoot/version.ps1"
 
 Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
-if (!(DecompressTar -URL "https://gh.llkk.cc/$ZSTD_URL" -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$ZSTD_URL" -File "$ZSTD_DIRNAME.tar.gz" -Hash $ZSTD_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://gh.llkk.cc/$BROTLI_URL" -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$BROTLI_URL" -File "$BROTLI_DIRNAME.tar.gz" -Hash $BROTLI_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://gh.llkk.cc/$ZLIBNG_URL" -File "$ZLIBNG_FILE.tar.gz" -Hash $ZLIBNG_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$ZLIBNG_URL" -File "$ZLIBNG_DIRNAME.tar.gz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://gh.llkk.cc/$OPENSSL_URL" -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$OPENSSL_URL" -File "$OPENSSL_DIRNAME.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP3_URL" -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP3_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP3_URL" -File "$NGHTTP3_DIRNAME.tar.xz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
 
@@ -79,15 +79,15 @@ if (!(DecompressTar -URL "https://gh.llkk.cc/$NGTCP2_URL" -File "$NGTCP2_FILE.ta
 }
 
 
-if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP2_URL" -File "$NGHTTP2_FILE.tar.xz" -Hash $NGHTTP2_HASH)) {
+if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP2_URL" -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL "$LIBSSH2_URL" -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
+if (!(DecompressTar -URL "$LIBSSH2_URL" -File "$LIBSSH2_DIRNAME.tar.gz" -Hash $LIBSSH2_HASH)) {
     exit 1
 }
 
-if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.xz" -Hash $CURL_HASH)) {
+if (!(DecompressTar -URL $CURL_URL -File "$CURL_DIRNAME.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
 

@@ -236,33 +236,33 @@ if (!(MakeDirs -Dir $CURL_DESTINATION)) {
 $env:INCLUDE = "$env:INCLUDE;$BUILD_STAGE0_ROOT/include"
 $env:LIB = "$env:LIB;$BUILD_STAGE0_ROOT/lib"
 
-if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_FILE.tar.gz" -Hash $ZSTD_HASH)) {
+if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_DIRNAME.tar.gz" -Hash $ZSTD_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $BROTLI_URL -File "$BROTLI_FILE.tar.gz" -Hash $BROTLI_HASH)) {
+if (!(DecompressTar -URL $BROTLI_URL -File "$BROTLI_DIRNAME.tar.gz" -Hash $BROTLI_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $ZLIBNG_URL -File "$ZLIBNG_FILE.tar.gz" -Hash $ZLIBNG_HASH)) {
+if (!(DecompressTar -URL $ZLIBNG_URL -File "$ZLIBNG_DIRNAME.tar.gz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_FILE.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_DIRNAME.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_FILE.tar.xz" -Hash $NGHTTP3_HASH)) {
+if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_DIRNAME.tar.xz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_FILE.tar.xz" -Hash $NGHTTP2_HASH)) {
+if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_FILE.tar.gz" -Hash $LIBSSH2_HASH)) {
+if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_DIRNAME.tar.gz" -Hash $LIBSSH2_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $CURL_URL -File "$CURL_FILE.tar.xz" -Hash $CURL_HASH)) {
+if (!(DecompressTar -URL $CURL_URL -File "$CURL_DIRNAME.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
 
 ################################################## zlib-ng
-$ZLIBNG_BUILD_DIR = Join-Path $PWD "$ZLIBNG_FILE/out"
+$ZLIBNG_BUILD_DIR = Join-Path $PWD "$ZLIBNG_DIRNAME/out"
 if (!(MakeDirs -Dir $ZLIBNG_BUILD_DIR)) {
     exit 1
 }
@@ -292,7 +292,7 @@ if ($ec -ne 0) {
 ############################################################# zstd
 Write-Host -ForegroundColor Yellow "Build zstd $ZSTD_VERSION"
 
-$ZSTD_BUILD_DIR = Join-Path $WD "$ZSTD_FILE/build/cmake/out"
+$ZSTD_BUILD_DIR = Join-Path $WD "$ZSTD_DIRNAME/build/cmake/out"
 if (!(MakeDirs -Dir $ZSTD_BUILD_DIR)) {
     exit 1
 }
@@ -325,7 +325,7 @@ if (!(Test-Path "$BUILD_STAGE0_ROOT/lib/zstd.lib") -and (Test-Path "$BUILD_STAGE
 # build brotli static
 ######################################################### Brotli
 Write-Host -ForegroundColor Yellow "Build brotli $BROTLI_VERSION"
-$BROTLI_BUILD_DIR = Join-Path $WD "$BROTLI_FILE/out"
+$BROTLI_BUILD_DIR = Join-Path $WD "$BROTLI_DIRNAME/out"
 if (!(MakeDirs -Dir $BROTLI_BUILD_DIR)) {
     exit 1
 }
@@ -352,7 +352,7 @@ if ($ec -ne 0) {
 
 ##################################################### OpenSSL
 Write-Host -ForegroundColor Yellow "Build OpenSSL $OPENSSL_VERSION"
-$OPENSSL_SOURCE_DIR = Join-Path $WD $OPENSSL_FILE
+$OPENSSL_SOURCE_DIR = Join-Path $WD $OPENSSL_DIRNAME
 # Update env
 $env:INCLUDE = "$BUILD_STAGE0_ROOT/include;$env:INCLUDE"
 $env:LIB = "$BUILD_STAGE0_ROOT/lib;$env:LIB"
@@ -388,7 +388,7 @@ if ($ec -ne 0) {
 
 ######################################################### nghttp3
 Write-Host -ForegroundColor Yellow "Build nghttp3 $NGHTTP3_VERSION"
-$NGHTTP3_BUILD_DIR = Join-Path $WD "$NGHTTP3_FILE/out"
+$NGHTTP3_BUILD_DIR = Join-Path $WD "$NGHTTP3_DIRNAME/out"
 if (!(MakeDirs -Dir $NGHTTP3_BUILD_DIR)) {
     exit 1
 }
@@ -416,7 +416,7 @@ if ($ec -ne 0) {
 
 ######################################################### nghttp2
 Write-Host -ForegroundColor Yellow "Build nghttp2 $NGHTTP2_VERSION"
-$NGHTTP2_BUILD_DIR = Join-Path $WD "$NGHTTP2_FILE/out"
+$NGHTTP2_BUILD_DIR = Join-Path $WD "$NGHTTP2_DIRNAME/out"
 if (!(MakeDirs -Dir $NGHTTP2_BUILD_DIR)) {
     exit 1
 }
@@ -446,7 +446,7 @@ if ($ec -ne 0) {
 
 ############################################################# Libssh2
 Write-Host -ForegroundColor Yellow "Build libssh2 $LIBSSH2_VERSION"
-$LIBSSH2_SOURCE_DIR = Join-Path $WD $LIBSSH2_FILE
+$LIBSSH2_SOURCE_DIR = Join-Path $WD $LIBSSH2_DIRNAME
 $LIBSSH2_BUILD_DIR = Join-Path $LIBSSH2_SOURCE_DIR "build"
 $LIBSSH2_PATCHH = Join-Path $PSScriptRoot "patch/libssh2.patch"
 $ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$LIBSSH2_PATCHH`"" -WD $LIBSSH2_SOURCE_DIR
@@ -487,7 +487,7 @@ if ($ec -ne 0) {
 
 Write-Host -ForegroundColor Yellow "Final build curl $CURL_VERSION"
 
-$CURL_SOURCE_DIR = Join-Path $WD "$CURL_FILE"
+$CURL_SOURCE_DIR = Join-Path $WD "$CURL_DIRNAME"
 $CURL_BUILD_DIR = Join-Path $CURL_SOURCE_DIR "build"
 $CURL_PATCH = Join-Path $PSScriptRoot "patch/curl.patch"
 $CURL_ICON_FILE = Join-Path $PSScriptRoot "patch/curl.ico"
