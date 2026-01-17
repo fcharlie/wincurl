@@ -54,7 +54,7 @@ Function WebUnarchive {
         [String]$Hash
     )
     if (!(Test-Path $File)) {
-        if (!(WebGet -Exe $Exe -URL $URL -O $File)) {
+        if (!(WebGet -Exe $Exe -URL $URL -File $File)) {
             return $false
         }
     }
