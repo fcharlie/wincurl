@@ -1,12 +1,59 @@
 #!/usr/bin/env pwsh
 
-
-# TLS enable tls12/tls13
-[enum]::GetValues('Net.SecurityProtocolType') | Where-Object { $_ -ge 'Tls12' } | ForEach-Object {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor $_
+Function Exec {
+    param(
+        [string]$FilePath,
+        [string]$Argv,
+        [string]$WD
+    )
+    $pi = New-Object System.Diagnostics.ProcessStartInfo
+    $pi.FileName = $FilePath
+    Write-Host "$FilePath $Argv [$WD] "
+    if ([String]::IsNullOrEmpty($WD)) {
+        $pi.WorkingDirectory = $PWD
+    }
+    else {
+        $pi.WorkingDirectory = $WD
+    }
+    $pi.Arguments = $Argv
+    $pi.UseShellExecute = $false ## use createprocess not shellexecute
+    $ps = New-Object System.Diagnostics.Process
+    $ps.StartInfo = $pi
+    if ($ps.Start() -eq $false) {
+        return -1
+    }
+    $ps.WaitForExit()
+    return $ps.ExitCode
 }
 
-Import-Module -Name "$PSScriptRoot/script/Utility"
+Function WinGet {
+    param(
+        [String]$URL,
+        [String]$O
+    )
+    # 
+    Write-Host "Download file: $O"
+    $ex = Exec -FilePath "curl.exe" -Argv "--progress-bar -fS --connect-timeout 15 --retry 3 -o `"$O`" -L --proto-redir =https $URL" -WD $PWD
+    if ($ex -ne 0) {
+        return $false
+    }
+    return $true
+}
+
+Function MakeDirs {
+    param(
+        [String]$Dir
+    )
+    try {
+        New-Item -ItemType Directory -Force $Dir
+    }
+    catch {
+        Write-Host -ForegroundColor Red "mkdir $Dir error: $_"
+        return $false
+    }
+    return $true
+}
+
 
 Function DecompressTar {
     param(
@@ -77,7 +124,6 @@ if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP3_URL" -File "$NGHTTP3_DIRNA
 if (!(DecompressTar -URL "https://gh.llkk.cc/$NGTCP2_URL" -File "$NGTCP2_FILE.tar.xz" -Hash $NGTCP2_HASH)) {
     exit 1
 }
-
 
 if (!(DecompressTar -URL "https://gh.llkk.cc/$NGHTTP2_URL" -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1

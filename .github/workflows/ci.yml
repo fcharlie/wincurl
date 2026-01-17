@@ -37,20 +37,9 @@ jobs:
         env:
           wincurl_target: ${{ matrix.wincurl_target }}
           msvc_arch: ${{ matrix.msvc_arch }}
-          ref_name: ${{ github.ref }}
           build_dir: ${{ matrix.build_dir }}
         run: pwsh -NoProfile -NoLogo -ExecutionPolicy unrestricted -File "./build.ps1" -Target "${{ matrix.short_target }}"
-      - name: check_artifact_hash
-        shell: pwsh
-        run: |
-          Set-Location destination
-          $item=Get-Item *.zip
-          $obj=Get-FileHash -Algorithm SHA256 $item.FullName
-          $baseName=Split-Path -Leaf $item.FullName
-          $env:WINCURL_ASSET_NAME="$baseName"
-          $hashtext=$obj.Algorithm+":"+$obj.Hash.ToLower()
-          Write-Host "$env:WINCURL_ASSET_NAME`n$hashtext"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}
           path: destination/*

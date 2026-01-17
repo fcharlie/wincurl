@@ -5,7 +5,109 @@ param(
     [string]$Target = "win64"
 )
 
-Import-Module -Name "$PSScriptRoot/script/Utility"
+Function Exec {
+    param(
+        [string]$FilePath,
+        [string]$Argv,
+        [string]$WD
+    )
+    $pi = New-Object System.Diagnostics.ProcessStartInfo
+    $pi.FileName = $FilePath
+    Write-Host "$FilePath $Argv [$WD] "
+    if ([String]::IsNullOrEmpty($WD)) {
+        $pi.WorkingDirectory = $PWD
+    }
+    else {
+        $pi.WorkingDirectory = $WD
+    }
+    $pi.Arguments = $Argv
+    $pi.UseShellExecute = $false ## use createprocess not shellexecute
+    $ps = New-Object System.Diagnostics.Process
+    $ps.StartInfo = $pi
+    if ($ps.Start() -eq $false) {
+        return -1
+    }
+    $ps.WaitForExit()
+    return $ps.ExitCode
+}
+
+Function WebGet {
+    param(
+        [String]$Exe,
+        [String]$URL,
+        [String]$File,
+        [String]$Hash
+    )
+    Write-Host "Download file: $File"
+    $ex = Exec -FilePath $Exe -Argv "-fsS --connect-timeout 15 --retry 3 -o `"$File`" -L $URL" -WD $PWD
+    if ($ex -ne 0) {
+        return $false
+    }
+    return $true
+}
+
+Function WebUnarchive {
+    param(
+        [String]$Exe,
+        [String]$URL,
+        [String]$File,
+        [String]$Hash
+    )
+    if (!(Test-Path $File)) {
+        if (!(WebGet -Exe $Exe -URL $URL -O $File)) {
+            return $false
+        }
+    }
+    Write-Host "check sha256sum:  $File"
+    $h = Get-FileHash -Algorithm SHA256 $File
+    if ($h.Hash -ne $Hash) {
+        Write-Host "Download $File checksum mismatch expected $Hash actual $($h.Hash)"
+        Remove-Item -Force $File
+        if (!(WebGet -Exe $Exe -URL $URL -O $File)) {
+            return $false
+        }
+        $h = Get-FileHash -Algorithm SHA256 $File
+        if ($h.Hash -ne $Hash) {
+            Write-Host "Download $File checksum mismatch expected $Hash actual $($h.Hash)"
+            return $false
+        }
+    }
+    if ((Exec -FilePath $cmakeExe -Argv "-E tar -xf $File") -ne 0) {
+        Write-Host -ForegroundColor Red "decompress $File failed"
+        return $false
+    }
+    return $true
+}
+
+
+Function WhereIs {
+    param(
+        [String]$Name
+    )
+    $command = Get-Command -CommandType Application $Name -ErrorAction SilentlyContinue
+    if ($null -eq $command) {
+        return $null
+    }
+    $target = Get-Item $command[0].Source
+    if ($null -ne $target -and $target.LinkType -eq "SymbolicLink") {
+        return $target.Target
+    }
+    return $command[0].Source
+}
+
+Function MakeDirs {
+    param(
+        [String]$Dir
+    )
+    try {
+        New-Item -ItemType Directory -Force $Dir
+    }
+    catch {
+        Write-Host -ForegroundColor Red "mkdir $Dir error: $_"
+        return $false
+    }
+    return $true
+}
 
 function Get-VSWhere {
     $app = Get-Command -CommandType Application "vswhere" -ErrorAction SilentlyContinue
@@ -39,24 +141,24 @@ Function Invoke-BatchFile {
     Remove-Item $tempFile
 }
 
-Function FindCommand4GitDevs {
+Function WhereIs4GitDevs {
     param(
         [String]$Cmd
     )
-    $gitexex = FindCommand -Name "git"
-    if ($null -eq $gitexex) {
+    $gitExe = WhereIs -Name "git"
+    if ($null -eq $gitExe) {
         Write-Host -ForegroundColor Red "Please install git-for-windows."
         return $null
     }
-    $gitinstall = Split-Path -Parent (Split-Path -Parent $gitexex)
-    if ([String]::IsNullOrEmpty($gitinstall)) {
+    $gitInstallDir = Split-Path -Parent (Split-Path -Parent $gitExe)
+    if ([String]::IsNullOrEmpty($gitInstallDir)) {
         Write-Host -ForegroundColor Red "Please install git-for-windows."
         return $null
     }
-    $cmdx = Join-Path $gitinstall "usr/bin/${Cmd}.exe"
+    $cmdx = Join-Path $gitInstallDir "usr/bin/${Cmd}.exe"
     Write-Host "Try to find patch from $cmdx"
     if (!(Test-Path $cmdx)) {
-        $xinstall = Split-Path -Parent $gitinstall
+        $xinstall = Split-Path -Parent $gitInstallDir
         if ([String]::IsNullOrEmpty($xinstall)) {
             Write-Host -ForegroundColor Red "Please install git-for-windows."
             return $null
@@ -69,6 +171,7 @@ Function FindCommand4GitDevs {
     }
     return $cmdx
 }
+
 
 $targetTables = @{
     "win-x64@win64"   = "amd64";
@@ -114,30 +217,30 @@ if ($null -eq $clexe) {
 }
 Write-Host "Find cl.exe: $($clexe.Version)"
 
-$curlexe = FindCommand -Name "curl"
-if ($null -eq $curlexe) {
+$curl = WhereIs -Name "curl"
+if ($null -eq $curl) {
     Write-Host -ForegroundColor Red "Please use the latest Windows release."
     exit 1
 }
-Write-Host -ForegroundColor Green "curl: $curlexe"
+Write-Host -ForegroundColor Green "curl: $curl"
 
-$cmakeExe = FindCommand -Name "cmake"
+$cmakeExe = WhereIs -Name "cmake"
 if ($null -eq $cmakeExe) {
     Write-Host -ForegroundColor Red "Please install cmake."
     exit 1
 }
 Write-Host -ForegroundColor Green "cmake: $cmakeExe"
 
-$ninjaExe = FindCommand -Name "ninja"
+$ninjaExe = WhereIs -Name "ninja"
 if ($null -eq $ninjaExe) {
     Write-Host -ForegroundColor Red "Please install ninja."
     exit 1
 }
 Write-Host -ForegroundColor Green "ninja: $ninjaExe"
 
-$patchExe = FindCommand4GitDevs -Cmd "patch"
+$patchExe = WhereIs4GitDevs -Cmd "patch"
 if ($null -eq $patchExe) {
-    $patchExe = FindCommand -Name "patch"
+    $patchExe = WhereIs -Name "patch"
     if ($null -eq $patchExe) {
         Write-Host -ForegroundColor Red "Please install patch."
         exit 1
@@ -146,7 +249,7 @@ if ($null -eq $patchExe) {
 
 Write-Host  -ForegroundColor Green "path: $patchExe"
 
-$perlExe = FindCommand -Name "perl"
+$perlExe = WhereIs -Name "perl"
 
 if ($null -eq $perlExe) {
     Write-Host -ForegroundColor Red "Please install perl (strawberryperl, activeperl).
@@ -155,49 +258,13 @@ if ($null -eq $perlExe) {
 }
 Write-Host  -ForegroundColor Green "perl: $perlExe"
 
-
-Function DecompressTar {
-    param(
-        [String]$URL,
-        [String]$File,
-        [String]$Hash
-    )
-    if (!(Test-Path $File)) {
-        if (!(WinGet -URL $URL -O $File)) {
-            return $false
-        }
-    }
-    Write-Host "check sha256sum:  $File"
-    $xhash = Get-FileHash -Algorithm SHA256 $File
-    if ($xhash.Hash -ne $Hash) {
-        Write-Host "Download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
-        Remove-Item -Force $File
-        if (!(WinGet -URL $URL -O $File)) {
-            return $false
-        }
-    }
-    $xhash = Get-FileHash -Algorithm SHA256 $File
-    if ($xhash.Hash -ne $Hash) {
-        Write-Host "Download $File checksum mismatch expected $Hash actual $($xhash.Hash)"
-        return $false
-    }
-
-    if ((Exec -FilePath $cmakeExe -Argv "-E tar -xf $File") -ne 0) {
-        Write-Host -ForegroundColor Red "decompress $File failed"
-        return $false
-    }
-    return $true
+$VersionName = "$env:GITHUB_REF_NAME"
+if ([string]::IsNullOrEmpty($VersionName)) {
+    $VersionName = "dev"
 }
 
 
-$RefName = StripPrefix "$env:REF_NAME" "refs/tags/" # remove prefix
-
-if ($RefName.Length -eq 0) {
-    $RefName = "dev"
-}
-
-
-Write-Host "build wincurl $RefName <$PSScriptRoot>"
+Write-Host "build wincurl $VersionName <$PSScriptRoot>"
 $WD = "build"
 if (![String]::IsNullOrEmpty($env:BUILD_DIR)) {
     $WD = $env:BUILD_DIR
@@ -228,7 +295,6 @@ if (!(MakeDirs -Dir "$BUILD_STAGE0_ROOT/include")) {
 if (!(MakeDirs -Dir "$BUILD_STAGE0_ROOT/lib")) {
     exit 1
 }
-
 if (!(MakeDirs -Dir $CURL_DESTINATION)) {
     exit 1
 }
@@ -236,28 +302,25 @@ if (!(MakeDirs -Dir $CURL_DESTINATION)) {
 $env:INCLUDE = "$env:INCLUDE;$BUILD_STAGE0_ROOT/include"
 $env:LIB = "$env:LIB;$BUILD_STAGE0_ROOT/lib"
 
-if (!(DecompressTar -URL $ZSTD_URL -File "$ZSTD_DIRNAME.tar.gz" -Hash $ZSTD_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $ZSTD_URL -File "$ZSTD_DIRNAME.tar.gz" -Hash $ZSTD_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $BROTLI_URL -File "$BROTLI_DIRNAME.tar.gz" -Hash $BROTLI_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $BROTLI_URL -File "$BROTLI_DIRNAME.tar.gz" -Hash $BROTLI_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $ZLIBNG_URL -File "$ZLIBNG_DIRNAME.tar.gz" -Hash $ZLIBNG_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $ZLIBNG_URL -File "$ZLIBNG_DIRNAME.tar.gz" -Hash $ZLIBNG_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $OPENSSL_URL -File "$OPENSSL_DIRNAME.tar.gz" -Hash $OPENSSL_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $OPENSSL_URL -File "$OPENSSL_DIRNAME.tar.gz" -Hash $OPENSSL_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $NGHTTP3_URL -File "$NGHTTP3_DIRNAME.tar.xz" -Hash $NGHTTP3_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $NGHTTP3_URL -File "$NGHTTP3_DIRNAME.tar.xz" -Hash $NGHTTP3_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $NGHTTP2_URL -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $NGHTTP2_URL -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
-if (!(DecompressTar -URL $LIBSSH2_URL -File "$LIBSSH2_DIRNAME.tar.gz" -Hash $LIBSSH2_HASH)) {
-    exit 1
-}
-if (!(DecompressTar -URL $CURL_URL -File "$CURL_DIRNAME.tar.xz" -Hash $CURL_HASH)) {
+if (!(WebUnarchive -Exe $curl -URL $CURL_URL -File "$CURL_DIRNAME.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
 
@@ -443,46 +506,6 @@ if ($ec -ne 0) {
     exit 1
 }
 
-
-############################################################# Libssh2
-Write-Host -ForegroundColor Yellow "Build libssh2 $LIBSSH2_VERSION"
-$LIBSSH2_SOURCE_DIR = Join-Path $WD $LIBSSH2_DIRNAME
-$LIBSSH2_BUILD_DIR = Join-Path $LIBSSH2_SOURCE_DIR "build"
-$LIBSSH2_PATCHH = Join-Path $PSScriptRoot "patch/libssh2.patch"
-$ec = Exec -FilePath $Patchexe -Argv "-Nbp1 -i `"$LIBSSH2_PATCHH`"" -WD $LIBSSH2_SOURCE_DIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "Apply $LIBSSH2_PATCHH failed"
-}
-if (!(MakeDirs -Dir $LIBSSH2_BUILD_DIR)) {
-    exit 1
-}
-
-
-$LIBSSH2_CFLAGS = "-DHAVE_EVP_AES_128_CTR=1"
-$libssh2Options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=$BUILD_STAGE0_ROOT`" `"-DCMAKE_PREFIX_PATH=${BUILD_STAGE0_ROOT}`" "
-$libssh2Options += "-DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_ZLIB_COMPRESSION=ON "
-$libssh2Options += "-DCRYPTO_BACKEND=OpenSSL "
-$libssh2Options += "-DENABLE_ZLIB_COMPRESSION=ON "
-$libssh2Options += "-DCMAKE_MSVC_RUNTIME_LIBRARY_DEFAULT=`"MultiThreaded$<$<CONFIG:Debug>:Debug>`" "
-$libssh2Options += "`"-DCMAKE_C_FLAGS=${LIBSSH2_CFLAGS}`" .. " 
-$ec = Exec -FilePath $cmakeExe -Argv $libssh2Options -WD $LIBSSH2_BUILD_DIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "libssh2: create build.ninja error"
-    exit 1
-}
-
-$ec = Exec -FilePath $ninjaExe -Argv "all" -WD $LIBSSH2_BUILD_DIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "libssh2: build error"
-    exit 1
-}
-
-$ec = Exec -FilePath $ninjaExe -Argv "install" -WD $LIBSSH2_BUILD_DIR
-if ($ec -ne 0) {
-    Write-Host -ForegroundColor Red "libssh2: install error"
-    exit 1
-}
-
 ############################################################## CURL
 
 Write-Host -ForegroundColor Yellow "Final build curl $CURL_VERSION"
@@ -521,8 +544,6 @@ $options = "${options} -DCURL_ZSTD=ON"
 $options = "${options} -DCURL_USE_OPENSSL=ON"
 $options = "${options} -DCURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DHAVE_OPENSSL_SRP -DUSE_TLS_SRP"
-# libssh2
-$options = "${options} -DCURL_USE_LIBSSH2=ON"
 # nghttp2
 $options = "${options} -DUSE_NGHTTP2=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP2_STATICLIB"
@@ -554,18 +575,12 @@ if ($ec -ne 0) {
 
 Write-Host -ForegroundColor Green "curl: build completed"
 
-$VersionName = $CURL_VERSION
-if (!$RefName.StartsWith("refs/heads/")) {
-    $VersionName = $RefName
+$SaveTo = "$CURL_DESTINATION/wincurl-${Target}-$VersionName.zip"
+if (Test-Path $SaveTo) {
+    Remove-Item -Force $SaveTo 
 }
+Remove-Item -Force "$CURL_BUILD_ROOT/bin/curl-config"
+Compress-Archive -Path "$CURL_BUILD_ROOT/bin/*" -DestinationPath $SaveTo -CompressionLevel Optimal
+$newItem = Get-Item $SaveTo
 
-$DestinationPath = "$CURL_DESTINATION/wincurl-${Target}-$VersionName.zip"
-if (Test-Path $DestinationPath) {
-    Remove-Item -Force $DestinationPath 
-}
-Compress-Archive -Path "$CURL_BUILD_ROOT/*" -DestinationPath $DestinationPath
-$obj = Get-FileHash -Algorithm SHA256 $DestinationPath
-$baseName = Split-Path -Leaf $DestinationPath
-$hashtext = $obj.Algorithm + ":" + $obj.Hash.ToLower()
-$hashtext | Out-File -Encoding utf8 -FilePath "$DestinationPath.sha256"
-Write-Host "$baseName`n$hashtext"
+Write-Host -ForegroundColor Green "curl: compress success. save to: $SaveTo size: $($newItem.LengthString)"
