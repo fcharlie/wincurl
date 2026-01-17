@@ -320,6 +320,9 @@ if (!(WebUnarchive -Exe $curl -URL $NGHTTP3_URL -File "$NGHTTP3_DIRNAME.tar.xz" 
 if (!(WebUnarchive -Exe $curl -URL $NGHTTP2_URL -File "$NGHTTP2_DIRNAME.tar.xz" -Hash $NGHTTP2_HASH)) {
     exit 1
 }
+if (!(WebUnarchive -Exe $curl -URL $NGTCP2_URL -File "$NGTCP2_DIRNAME.tar.xz" -Hash $NGTCP2_HASH)) {
+    exit 1
+}
 if (!(WebUnarchive -Exe $curl -URL $CURL_URL -File "$CURL_DIRNAME.tar.xz" -Hash $CURL_HASH)) {
     exit 1
 }
@@ -486,7 +489,7 @@ if (!(MakeDirs -Dir $NGHTTP2_BUILD_DIR)) {
 
 $nghttp2Options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=${BUILD_STAGE0_ROOT}`" `"-DCMAKE_PREFIX_PATH=${BUILD_STAGE0_ROOT}`" "
 $nghttp2Options += "-DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DENABLE_LIB_ONLY=ON -DENABLE_ASIO_LIB=OFF -DENABLE_STATIC_CRT=ON "
-$nghttp2Options += "-DENABLE_OPENSSL=ON -DHAVE_SSL_IS_QUIC=ON .."
+$nghttp2Options += ".."
 
 $ec = Exec -FilePath $cmakeExe -Argv $nghttp2Options -WD $NGHTTP2_BUILD_DIR
 if ($ec -ne 0) {
@@ -503,6 +506,36 @@ if ($ec -ne 0) {
 $ec = Exec -FilePath $ninjaExe -Argv "install" -WD $NGHTTP2_BUILD_DIR
 if ($ec -ne 0) {
     Write-Host -ForegroundColor Red "nghttp2: install error"
+    exit 1
+}
+
+######################################################### ngtcp2
+Write-Host -ForegroundColor Yellow "Build ngtcp2 $NGTCP2_VERSION"
+$NGTCP2_BUILD_DIR = Join-Path $WD "$NGTCP2_DIRNAME/out"
+if (!(MakeDirs -Dir $NGTCP2_BUILD_DIR)) {
+    exit 1
+}
+
+$ngtcp2Options = "-GNinja -DCMAKE_BUILD_TYPE=Release `"-DCMAKE_INSTALL_PREFIX=${BUILD_STAGE0_ROOT}`" `"-DCMAKE_PREFIX_PATH=${BUILD_STAGE0_ROOT}`" "
+$ngtcp2Options += "-DCMAKE_MSVC_RUNTIME_LIBRARY=`"MultiThreaded$<$<CONFIG:Debug>:Debug>`" "
+$ngtcp2Options += "-DENABLE_LIB_ONLY=ON -DENABLE_SHARED_LIB=OFF -DENABLE_STATIC_LIB=ON -DBUILD_TESTING=OFF -DENABLE_STATIC_CRT=ON "
+$ngtcp2Options += "-DENABLE_OPENSSL=ON .."
+
+$ec = Exec -FilePath $cmakeExe -Argv $ngtcp2Options -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: create build.ninja error"
+    exit 1
+}
+
+$ec = Exec -FilePath $ninjaExe -Argv "all" -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: build error"
+    exit 1
+}
+
+$ec = Exec -FilePath $ninjaExe -Argv "install" -WD $NGTCP2_BUILD_DIR
+if ($ec -ne 0) {
+    Write-Host -ForegroundColor Red "ngtcp2: install error"
     exit 1
 }
 
@@ -523,7 +556,7 @@ if (!(MakeDirs -Dir $CURL_BUILD_DIR)) {
 
 $CA_BUNDLE = Join-Path $CURL_SOURCE_DIR "curl-ca-bundle.crt"
 
-if (!(WinGet -URL $CA_BUNDLE_URL -O $CA_BUNDLE)) {
+if (!(WebGet -Exe $curl -URL $CA_BUNDLE_URL -File $CA_BUNDLE)) {
     Write-Host -ForegroundColor Red "download curl-ca-bundle.crt  error"
 }
 
@@ -550,8 +583,11 @@ $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP2_STATICLIB"
 # nghttp3
 $options = "${options} -DUSE_NGHTTP3=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP3_STATICLIB"
+# ngtcp2
+$options = "${options} -DUSE_NGTCP2=ON"
+$CURL_CFLAGS = "${CURL_CFLAGS} -DNGTCP2_STATICLIB"
 
-$options = "${options} -DCURL_USE_OPENSSL=ON -DUSE_OPENSSL_QUIC=ON"
+$options = "${options} -DCURL_USE_OPENSSL=ON -DHAVE_SSL_SET_QUIC_TLS_CBS=1 -DHAVE_LIBRESSL=0 -DHAVE_SSL_SET0_WBIO=1"
 $options = "${options} `"-DCURL_CA_EMBED=$CA_BUNDLE`""
 $options = "${options} `"-DCMAKE_C_FLAGS=${CURL_CFLAGS}`" `"-DCMAKE_INSTALL_PREFIX=$CURL_BUILD_ROOT`" `"-DCMAKE_PREFIX_PATH=${BUILD_STAGE0_ROOT}`"  .."
 
