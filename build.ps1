@@ -431,8 +431,8 @@ elseif ($vsArch -eq "amd64_arm64") {
     $OPENSSL_ARCH = "VC-WIN64-ARM"
 }
 
-# perl Configure no-shared no-ssl3 enable-capieng -utf-8
-$opensslOptions = "Configure no-shared no-legacy no-unit-test no-asm no-tests no-ssl3 enable-capieng -utf-8 "
+# perl Configure no-shared -utf-8
+$opensslOptions = "Configure no-shared no-legacy no-unit-test no-asm no-tests -utf-8 "
 $opensslOptions += "$OPENSSL_ARCH `"--prefix=$BUILD_STAGE0_ROOT`" "
 $ec = Exec -FilePath $perlExe -Argv $opensslOptions -WD $OPENSSL_SOURCE_DIR
 if ($ec -ne 0) {
