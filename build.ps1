@@ -579,12 +579,23 @@ $options = "${options} -DCURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DHAVE_OPENSSL_SRP -DUSE_TLS_SRP"
 # nghttp2
 $options = "${options} -DUSE_NGHTTP2=ON"
+$options = "${options} `"-DNGHTTP2_INCLUDE_DIR=$BUILD_STAGE0_ROOT/include`""
+$options = "${options} `"-DNGHTTP2_LIBRARY=$BUILD_STAGE0_ROOT/lib/nghttp2.lib`""
+$options = "${options} -DNGHTTP2_USE_STATIC_LIBS=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP2_STATICLIB"
+
 # nghttp3
 $options = "${options} -DUSE_NGHTTP3=ON"
+$options = "${options} `"-DNGHTTP3_INCLUDE_DIR=$BUILD_STAGE0_ROOT/include`""
+$options = "${options} `"-DNGHTTP3_LIBRARY=$BUILD_STAGE0_ROOT/lib/nghttp3.lib`""
+$options = "${options} -DNGHTTP3_USE_STATIC_LIBS=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGHTTP3_STATICLIB"
+
 # ngtcp2
 $options = "${options} -DUSE_NGTCP2=ON"
+$options = "${options} `"-DNGTCP2_INCLUDE_DIR=$BUILD_STAGE0_ROOT/include`""
+$options = "${options} `"-DNGTCP2_LIBRARY=$BUILD_STAGE0_ROOT/lib/ngtcp2.lib`""
+$options = "${options} -DNGTCP2_USE_STATIC_LIBS=ON"
 $CURL_CFLAGS = "${CURL_CFLAGS} -DNGTCP2_STATICLIB"
 
 $options = "${options} -DCURL_USE_OPENSSL=ON -DHAVE_SSL_SET_QUIC_TLS_CBS=1 -DHAVE_LIBRESSL=0 -DHAVE_SSL_SET0_WBIO=1"
