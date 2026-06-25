@@ -25,8 +25,8 @@ $NGTCP2_VERSION = "1.23.0"
 $NGTCP2_HASH = "59d5b4211e96970f2d3d5e6876f73dce03414800ba04aa56835b132fce8de730"
 
 # curl-${CURL_VERSION}.tar.xz
-$CURL_VERSION = "8.20.0"
-$CURL_HASH = "63fe2dc148ba0ceae89922ef838f7e5c946272c2e78b7c59fab4b79d3ce2b896"
+$CURL_VERSION = "8.21.0"
+$CURL_HASH = "aa1b66a70eace83dc624508745646c08ae561de512ab403adffb93ac87fc72e6"
 
 $ZLIBNG_URL = "https://github.com/zlib-ng/zlib-ng/archive/refs/tags/${ZLIBNG_VERSION}.tar.gz"
 $ZLIBNG_DIRNAME = "zlib-ng-${ZLIBNG_VERSION}"
